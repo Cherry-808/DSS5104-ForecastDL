@@ -83,8 +83,8 @@ comparison_project/
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/username/comparison_project.git
-   cd comparison_project
+   git clone https://github.com/Cherry-808/DSS5104-ForecastDL.git
+   cd DSS5104-ForecastDL
    ```
 
 2. Create a virtual environment

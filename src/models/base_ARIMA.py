@@ -1,21 +1,32 @@
-import statsmodels.api as sm
+import numpy as np
 from statsmodels.tsa.arima.model import ARIMA
-import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
 
-def build_arima_model():
-    # 1. Extract a univariate series from combined_data
-    tsla_col = [col for col in combined_data.columns if col.lower().endswith('close_scaled')][0]
-    tsla_series = combined_data[tsla_col]
+def build_arima_model(series, order, train_ratio, verbose=False):
+    # Ensure it's a 1D NumPy array
+    series = np.array(series.dropna()).flatten().astype('float64')
+    
+    # split into train and test sets
+    size = int(len(series) * train_ratio)
+    train, test = series[:size], series[size:]
+    history = list(train)
+    predictions = []
+    
+    # Walk-forward validation
+    for t in range(len(test)):
+        try:
+            # Convert to pure 1D array for ARIMA
+            model = ARIMA(np.array(history, dtype='float64'), order=order)
+            model_fit = model.fit()
+            yhat = model_fit.forecast()[0]
+        except Exception as e:
+            print(f" Model failed at step {t}: {e}")
+            yhat = history[-1]  # fallback: repeat last known value
 
-    # 2. Check stationarity (visual inspection or use ADF test)
-    tsla_diff = tsla_series.diff().dropna()
+        predictions.append(yhat)
+        history.append(test[t])
 
-    # Optional: ADF test
-    from statsmodels.tsa.stattools import adfuller
-    adf_result = adfuller(tsla_diff)
-    print(f"ADF Statistic: {adf_result[0]:.4f}, p-value: {adf_result[1]:.4f}")
+        if verbose:
+            print(f"predicted={yhat:.3f}, expected={test[t]:.3f}")
 
-    # 3. Fit ARIMA (p,d,q)
-    model = ARIMA(tsla_series, order=(5, 1, 0))  # Example (5,1,0); adjust with AIC/BIC
-
-    return model
+    return predictions, train, test

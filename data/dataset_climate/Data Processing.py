@@ -3,6 +3,15 @@ import numpy as np
 import pandas as pd
 from scipy.stats import zscore
 
+#import data
+import sys
+import os
+
+# Add the project root (one level up from 'notebooks') to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+
+from data.dataset_climate import combined_df.csv
+
 # load file 'combined_df.csv'
 df = pd.read_csv('combined_df.csv')
 

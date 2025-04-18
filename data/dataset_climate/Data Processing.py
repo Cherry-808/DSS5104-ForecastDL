@@ -3,15 +3,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import zscore
 
-#import data
-import sys
-import os
-
-# Add the project root (one level up from 'notebooks') to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-
-from data.dataset_climate import combined_df.csv
-
 # load file 'combined_df.csv'
 df = pd.read_csv('combined_df.csv')
 
@@ -26,7 +17,7 @@ df_predictors = [col for col in df.columns if col != df_target]
 df = df.dropna()
 
 #drop all rows with negative value for target variable
-df = df[df[df_target] >= 0]
+df = df[df_target] >= 0]
 
 #remove outliers using z-score
 z_scores = zscore(df[df_target])

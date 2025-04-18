@@ -17,7 +17,7 @@ df_predictors = [col for col in df.columns if col != df_target]
 df = df.dropna()
 
 #drop all rows with negative value for target variable
-df = df[df_target] >= 0]
+df = df[df[[df_target] >= 0]
 
 #remove outliers using z-score
 z_scores = zscore(df[df_target])

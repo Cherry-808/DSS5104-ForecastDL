@@ -1,0 +1,16 @@
+dataset:
+  # 标识名字，用于 Dataset 工厂
+  name: m5
+
+  # 原始/处理后数据路径
+  raw_dir: data/dataset_retail/m5/raw/M5-data
+  processed_dir: data/dataset_retail/m5/processed
+
+  # sliding window 超参数
+  history: 365
+  horizon: 28
+
+  num_workers: 0
+  pin_memory: False
+  limit_train_samples: 20
+  limit_val_samples: 10

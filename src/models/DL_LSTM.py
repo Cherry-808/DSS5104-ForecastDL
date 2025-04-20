@@ -26,26 +26,6 @@ def create_sequences(data, target_col, feature_cols, seq_length):
         y.append(seq_y)
     return np.array(X), np.array(y)
 
-# # Scale and split data
-# def prepare_lstm_data(df, target_col, seq_length, test_ratio):
-#     df = df.dropna()
-
-#     # Drop datetime columns if any
-#     datetime_cols = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-#     df = df.drop(columns=datetime_cols)
-
-#     feature_cols = [col for col in df.columns if col != target_col]
-#     scaler = MinMaxScaler()
-#     scaled = scaler.fit_transform(df[feature_cols + [target_col]])
-#     scaled_df = pd.DataFrame(scaled, columns=feature_cols + [target_col], index=df.index)
-
-#     X, y = create_sequences(scaled_df, target_col, feature_cols, seq_length)
-#     split = int(len(X) * (1 - test_ratio))
-#     X_train, X_test = X[:split], X[split:]
-#     y_train, y_test = y[:split], y[split:]
-
-#     return X_train, X_test, y_train.reshape(-1, 1), y_test.reshape(-1, 1), scaler, df.index[-len(y_test):]
-
 # Scale and split data (without scaling)
 def prepare_lstm_data(df, target_col, seq_length, test_ratio):
     df = df.dropna()

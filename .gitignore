@@ -1,69 +1,113 @@
+# .gitignore
+
+# --- Python ---
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Virtual environment
-venv/
-.env/
+*.pyc
+*.pyo
+*.pyd
 
 # Distribution / packaging
+.Python
 build/
+develop-eggs/
 dist/
-*.egg-info/
+downloads/
+eggs/
 .eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
+# *.manifest
+# *.spec
 
 # Installer logs
-egg_log.txt
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
+.tox/
+.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints
+# --- Virtual Environments ---
+venv/
+env/
+.env
+.venv
+ENV/
+env.bak/
+venv.bak/
 
-# VSCode
+# --- IDE / Editor Files ---
 .vscode/
-
-# PyCharm
 .idea/
+*.sublime-project
+*.sublime-workspace
 
-# macOS
+# --- OS Files ---
 .DS_Store
+Thumbs.db
 
-# Data files (raw & large processed)
-# Ignored if you use DVC or external storage
-data/*/*/raw/
-data/*/*/processed/
+# --- Data Files (Often Large - Avoid Committing Directly) ---
+# Raw Data
+data/dataset_retail/raw/*.csv
+data/dataset_retail/raw/*.zip
+# Processed Data
+data/dataset_retail/processed/*.parquet
+data/dataset_retail/processed/*.pkl
+data/dataset_retail/processed/*.npy
+# If you decide to use Git LFS for processed data, adjust accordingly
 
-# Model checkpoints
-checkpoints/
+# --- Logs ---
 logs/
-
-# Temporary files
 *.log
-*.tmp
 
-# SQLite database
-*.db
+# --- Saved Models (Often Large) ---
+models/*.pkl
+models/*.keras
+models/*.pt
+models/*.pth
+models/*.pb
+models/prophet_model.pkl # Specific examples if needed
+models/scaler_*.pkl
+# Saved model checkpoints within subdirectories
+models/*/saved_model/
+models/*/checkpoints/
+# Use Git LFS if you need to track models
 
-# Misc
-*.bak
+# --- Outputs / Results (Often Large or Run-Specific) ---
+outputs/results/
+# Individual prediction files / figures (use Git LFS if needed)
+# outputs/results/**/*.csv
+# outputs/results/**/*.png
+# outputs/results/**/*.json
+
+# --- Notebook Checkpoints ---
+.ipynb_checkpoints/
+
+# --- Other ---
 *.swp
-*.swo
-
+*~

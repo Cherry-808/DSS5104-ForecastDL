@@ -1,64 +1,41 @@
+# src/data/data_loaders.py
+import pandas as pd
 import os
-import numpy as np
-from torch.utils.data import Dataset
+import logging
 
-
-class M5Dataset(Dataset):
+def load_processed_data(processed_dir: str, store_id: int, item_id: int) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
     """
-    PyTorch Dataset for M5 time-series data using memory-mapped numpy array.
+    Loads preprocessed train and validation data from Parquet files.
 
-    The processed directory should contain a file 'ts_values.npy' of shape (n_series, n_days).
+    Args:
+        processed_dir (str): Directory containing the processed Parquet files.
+        store_id (int): Store ID.
+        item_id (int): Item ID.
+
+    Returns:
+        tuple[pd.DataFrame | None, pd.DataFrame | None]: Tuple containing training dataframe
+                                                        and validation dataframe, or (None, None) on error.
     """
-    def __init__(self, ts_path: str, history: int, horizon: int):
-        """
-        Args:
-            ts_path: Path to the numpy file with raw time series (n_series, n_days)
-            history: Number of past days to use as input
-            horizon: Number of future days to predict
-        """
-        if not os.path.exists(ts_path):
-            raise FileNotFoundError(f"Time series file not found: {ts_path}")
+    train_filename = f'train_featured_s{store_id}_i{item_id}.parquet'
+    validation_filename = f'validation_featured_s{store_id}_i{item_id}.parquet'
+    train_path = os.path.join(processed_dir, train_filename)
+    val_path = os.path.join(processed_dir, validation_filename)
 
-        # Load via mmap to avoid full memory load
-        self.ts = np.load(ts_path, mmap_mode='r')
-        self.history = history
-        self.horizon = horizon
+    logging.info(f"Attempting to load data from {train_path} and {val_path}...")
+    train_df, val_df = None, None
+    try:
+        train_df = pd.read_parquet(train_path)
+        val_df = pd.read_parquet(val_path)
+        # Ensure date column is datetime
+        train_df['date'] = pd.to_datetime(train_df['date'])
+        val_df['date'] = pd.to_datetime(val_df['date'])
+        logging.info(f"Data loaded successfully: Train shape={train_df.shape}, Validation shape={val_df.shape}")
+    except FileNotFoundError:
+        logging.error(f"Error: Input files not found. Looked for {train_path} and {val_path}. "
+                      "Ensure data_processing script was run for store={store_id}, item={item_id}.")
+    except ImportError:
+        logging.error("Error: 'pyarrow' library not found. Cannot read Parquet files. Install with 'pip install pyarrow'.")
+    except Exception as e:
+        logging.exception(f"An error occurred loading processed data: {e}")
 
-        # Calculate dimensions
-        self.n_series, self.n_days = self.ts.shape
-        self.max_start = self.n_days - self.horizon
-        self.samples_per_series = max(0, self.max_start - self.history + 1)
-        self.total_samples = self.n_series * self.samples_per_series
-
-    def __len__(self):
-        return self.total_samples
-
-    def __getitem__(self, idx):
-        # Determine which series and window index
-        series_idx = idx // self.samples_per_series
-        window_idx = idx % self.samples_per_series
-
-        start = window_idx
-        end = window_idx + self.history
-        x = self.ts[series_idx, start:end]
-        y = self.ts[series_idx, end:end + self.horizon]
-
-        return x.astype(np.float32), y.astype(np.float32)
-
-
-def get_dataset(name: str, **kwargs) -> Dataset:
-    """
-    Factory to get dataset by name.
-
-    Supported names:
-      - 'm5': returns M5Dataset
-    """
-    name = name.lower()
-    if name == 'm5':
-        return M5Dataset(
-            ts_path=kwargs.get('ts_path'),
-            history=kwargs.get('history'),
-            horizon=kwargs.get('horizon')
-        )
-    else:
-        raise ValueError(f"Unknown dataset: {name}")
+    return train_df, val_df

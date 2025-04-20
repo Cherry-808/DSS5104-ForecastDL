@@ -1,19 +1,35 @@
-# 基础数据处理库
-numpy>=1.26.0  # 兼容Python 3.12的版本
-pandas>=2.1.0
-scikit-learn>=1.3.0
+# requirements.txt
 
-# PyTorch及其相关库
-torch>=2.0.1
-torchvision>=0.15.2
-torchaudio>=2.0.2
+# --- Core Data Handling & Numerics ---
+pandas>=1.5.0   # 数据处理库 / Data manipulation library
+numpy>=1.21.0   # 数值计算库 / Numerical computing library
+pyarrow>=10.0.0 # 用于读写 Parquet 文件 / For reading/writing Parquet files
 
-# 数据可视化
-matplotlib>=3.7.2
-seaborn>=0.12.2
+# --- Time Series Models ---
+prophet>=1.1.0   # Prophet 模型库 / Prophet model library
+# statsmodels>=0.13.0 # 如果你使用了 ARIMA 或内置的分解/ACF/PACF / If using ARIMA or built-in decomposition/ACF/PACF
+xgboost>=1.6.0  # 如果你实现了 XGBoost / If implementing XGBoost
+tensorflow>=2.10.0 # TensorFlow 核心库 (包含 Keras) / TensorFlow core (includes Keras)
+# 注意: 在 Colab 或带 Nvidia GPU 的 Linux/Windows 上，标准 tensorflow 包通常就够了
+# 在 M 系列 Mac 上本地运行时，确保安装了 tensorflow-metal (pip install tensorflow-metal) 来利用 GPU (MPS)
+# 但 requirements.txt 通常只列 tensorflow 核心包
 
-# Kaggle API
-kaggle>=1.5.16
+# --- Machine Learning Utilities ---
+scikit-learn>=1.1.0 # 用于 Scaler, 评估指标等 / For Scaler, metrics, etc.
 
-# 其他有用的库
-tqdm>=4.65.0
+# --- Configuration & Utilities ---
+PyYAML>=6.0      # 用于加载 YAML 配置文件 / For loading YAML config files
+# argparse      # 标准库，无需列出 / Standard library, no need to list
+# pickle        # 标准库 / Standard library
+# os            # 标准库 / Standard library
+# logging       # 标准库 / Standard library
+# datetime      # 标准库 / Standard library
+# subprocess    # 标准库 / Standard library
+
+# --- Visualization (可选，主要用于 Notebook 或脚本绘图) ---
+matplotlib>=3.5.0 # 绘图库 / Plotting library
+# seaborn>=0.11.0   # 更高级的绘图 / Enhanced plotting (optional)
+
+# --- 其他 (根据你的具体实现添加) ---
+# 如果你用了 TCN 或其他特定库，在这里添加 / Add TCN or other specific libraries here if used
+# darts-pytorch # 例如，如果用了 Darts 库 / Example if using Darts library

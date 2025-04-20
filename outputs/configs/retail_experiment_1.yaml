@@ -1,0 +1,53 @@
+experiment_name: retail_s1_i1_comparison_v1
+
+# --- Dataset Configuration ---
+dataset:
+  name: dataset_retail # Identifier for the dataset type
+  raw_dir: data/dataset_retail/raw
+  processed_dir: data/dataset_retail/processed
+  store_id: 1
+  item_id: 1
+  validation_cutoff_date: '2017-09-30'
+  target_col: 'sales'
+  use_log_transform: False # Matches the setting in training scripts
+
+# --- Output Directories ---
+output_base_dir: outputs/results/retail # Base directory for results for this dataset
+models_dir: models # General directory for saving model files/scalers
+# Specific results will go into output_base_dir / experiment_name / model_name / ...
+
+# --- Models to Run ---
+models:
+  prophet:
+    params:
+      seasonality_mode: 'additive'
+
+  transformer:
+    params:
+      sequence_length: 60
+      head_size: 128
+      num_heads: 4
+      ff_dim: 128
+      num_transformer_blocks: 2
+      mlp_units: 64
+      dropout: 0.1
+      mlp_dropout: 0.1
+      learning_rate: 0.001
+      epochs: 1 # Training script might override with its default if not specified
+      batch_size: 64
+      early_stopping_patience: 10
+      
+  # - xgboost # Add other models here as you create their train scripts
+
+
+
+# --- Model Hyperparameters (Example for Prophet & Transformer) ---
+# These could be nested under each model name for more complex configs
+
+    # Add other Prophet params if needed, training script needs to read these
+  
+
+# Add hyperparameters for other models (xgboost_params, etc.)
+
+# --- Evaluation ---
+metrics_to_calculate: ['RMSE', 'MAE', 'MAPE']

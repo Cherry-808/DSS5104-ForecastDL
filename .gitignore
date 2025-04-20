@@ -76,7 +76,7 @@ Thumbs.db
 data/dataset_retail/raw/*.csv
 data/dataset_retail/raw/*.zip
 # Processed Data
-data/dataset_retail/processed/*.parquet
+#data/dataset_retail/processed/*.parquet
 data/dataset_retail/processed/*.pkl
 data/dataset_retail/processed/*.npy
 # If you decide to use Git LFS for processed data, adjust accordingly

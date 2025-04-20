@@ -2,9 +2,13 @@ import yfinance as yf
 from fredapi import Fred
 import pandas as pd
 
-def load_finance_data(ticker, start_date, end_date):
+def load_finance_data(ticker, start_date, end_date, intra_day_price):
     data = yf.download(ticker, start=start_date, end=end_date)
-    data = data[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    if intra_day_price:
+        data = data[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    else:
+        data = data[['Close', 'Volume']].dropna()
+
     data[f'{ticker}_Returns'] = data['Close'].pct_change().fillna(0)
     return data
 

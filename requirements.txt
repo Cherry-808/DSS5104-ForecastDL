@@ -13,6 +13,8 @@ tensorflow>=2.10.0 # TensorFlow 核心库 (包含 Keras) / TensorFlow core (incl
 # 注意: 在 Colab 或带 Nvidia GPU 的 Linux/Windows 上，标准 tensorflow 包通常就够了
 # 在 M 系列 Mac 上本地运行时，确保安装了 tensorflow-metal (pip install tensorflow-metal) 来利用 GPU (MPS)
 # 但 requirements.txt 通常只列 tensorflow 核心包
+statsmodels>=0.13.0 # 用于 ARIMA 和其他统计模型 / For ARIMA and other statistical models
+keras-tcn>=1.5.0 # 用于 TCN 模型 / For TCN model
 
 # --- Machine Learning Utilities ---
 scikit-learn>=1.1.0 # 用于 Scaler, 评估指标等 / For Scaler, metrics, etc.

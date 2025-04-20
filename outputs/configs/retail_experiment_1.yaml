@@ -50,4 +50,4 @@ models:
 # Add hyperparameters for other models (xgboost_params, etc.)
 
 # --- Evaluation ---
-metrics_to_calculate: ['RMSE', 'MAE', 'MAPE']
+metrics_to_calculate: ['RMSE', 'MSE', 'MAE', 'MAPE', 'R2', 'Adj_R2']

@@ -1,198 +1,155 @@
-# DSS5104-ForecastDL
+# Retail Demand Forecasting: Model Comparison
 
-## Project Overview
-This project aims to compare the predictive performance of various deep learning models against baseline models across multiple datasets. Through systematic experimental design and evaluation methodologies, we can comprehensively analyze the strengths and limitations of different models.
+## Description
+
+This project aims to compare the performance, scalability, robustness, and practicality of various classical and deep learning time series forecasting models. The primary focus is on predicting retail demand using the "Store Item Demand Forecasting Challenge" dataset from Kaggle.
+
+The comparison evaluates models based on standard regression metrics, including:
+* Root Mean Squared Error (RMSE)
+* Mean Absolute Error (MAE)
+* Mean Absolute Percentage Error (MAPE)
+* R-squared (R²)
+* Adjusted R-squared (Adj R²)
 
 ## Project Structure
 ```
+The project follows a modular structure:
 comparison_project/
 │
-├── data/                           # 存放所有数据集 / All datasets
-│   ├── dataset_1/                  # 第一个数据集 / First dataset
-│   │   ├── raw/                    # 原始数据 / Raw data
-│   │   └── processed/              # 预处理后的数据 / Processed data
-│   ├── dataset_2/                  # 第二个数据集 / Second dataset
-│   │   ├── raw/
-│   │   └── processed/
-│   └── ...
+├── data/                       # Datasets
+│   └── dataset_retail/         # Specific dataset directory
+│       ├── raw/                # Original downloaded data (e.g., train.csv - likely gitignored)
+│       └── processed/          # Processed data files (e.g., *.parquet - likely gitignored)
 │
-├── models/                         # 存放模型文件 / Model files
-│   ├── deep_model_1/               # 第一个深度学习模型 / First deep learning model
-│   │   └── saved_checkpoints/      # 保存的检查点 / Saved checkpoints
-│   ├── deep_model_2/               # 第二个深度学习模型 / Second deep learning model
-│   │   └── saved_checkpoints/
-│   ├── baseline_models/            # 基准模型 / Baseline models
-│   │   └── saved_states/           # 保存的状态 / Saved states
-│   └── ...
+├── models/                     # Saved model files & scalers (likely gitignored)
 │
-├── src/                            # 源代码 / Source code
-│   ├── data/                       # 数据处理 / Data processing
-│   │   ├── preprocessing.py        # 通用预处理函数 / Common preprocessing functions
-│   │   └── data_loaders.py         # 数据加载器 / Data loaders
-│   │
-│   ├── models/                     # 模型定义 / Model definitions
-│   │   ├── base_model.py           # 基础模型接口 / Base model interface
-│   │   ├── deep_model_1.py         # 第一个深度学习模型实现 / First deep learning model implementation
-│   │   ├── deep_model_2.py         # 第二个深度学习模型实现 / Second deep learning model implementation
-│   │   └── baseline_models.py      # 基准模型实现 / Baseline models implementation
-│   │
-│   ├── training/                   # 训练相关 / Training related
-│   │   ├── train.py                # 训练函数 / Training functions
-│   │   └── hyperparameter_tuning.py # 超参数调优 / Hyperparameter tuning
-│   │
-│   ├── evaluation/                 # 评估相关 / Evaluation related
-│   │   ├── metrics.py              # 评估指标 / Evaluation metrics
-│   │   ├── compare_models.py       # 模型比较函数 / Model comparison functions
-│   │   └── statistical_tests.py    # 统计显著性测试 / Statistical significance tests
-│   │
-│   └── visualization/              # 可视化 / Visualization
-│       └── plot_results.py         # 结果可视化 / Results visualization
+├── src/                        # Source code
+│   ├── data/                   # Data loading and preprocessing scripts/modules
+│   │   └── data_loaders.py
+│   ├── models/                 # Model architecture definitions
+│   │   ├── prophet_wrapper.py  # (Example if you wrap it)
+│   │   └── transformer.py      # (Example Keras/TF Transformer definition)
+│   ├── training/               # Model training scripts
+│   │   ├── train_prophet_retail.py
+│   │   └── train_transformer_retail.py
+│   │   └── ...                 # Add scripts for other models
+│   ├── evaluation/             # Evaluation metrics and saving logic
+│   │   ├── metrics.py
+│   │   └── saving.py           # (Example for saving predictions)
+│   ├── visualization/          # Plotting functions
+│   │   └── plot_results.py
+│   └── utils/                  # Shared utility functions
+│       ├── config_loader.py
+│       └── logging_setup.py
 │
-├── outputs/                    # 实验配置和结果 / Experiment configurations and results
-│   ├── configs/                    # 实验配置 / Experiment configurations
-│   │   ├── experiment_1.yaml       # 第一个实验配置 / First experiment configuration
-│   │   └── experiment_2.yaml       # 第二个实验配置 / Second experiment configuration
-│   │
-│   └── results/                    # 实验结果 / Experiment results
-│       ├── experiment_1/           # 第一个实验结果 / First experiment results
-│       │   ├── metrics/            # 性能指标 / Performance metrics
-│       │   ├── figures/            # 图表 / Figures
-│       │   └── model_comparisons/  # 模型比较 / Model comparisons
-│       └── experiment_2/
+├── outputs/                    # Experiment outputs
+│   ├── configs/                # Experiment configuration files (YAML)
+│   │   └── retail_experiment_1.yaml # Example config
+│   └── results/                # Experiment results (metrics, figures, predictions - likely gitignored)
+│       └── retail/             # Results specific to the retail dataset
+│           └── ...             # Subdirs for experiments, models, etc.
 │
-├── notebooks/                      # Jupyter notebooks
-│   ├── exploratory/                # 探索性分析 / Exploratory analysis
-│   ├── model_comparisons/          # 模型比较可视化 / Model comparison visualization
-│   └── result_analysis/            # 结果分析 / Result analysis
+├── logs/                       # Log files for runs (likely gitignored)
+│   └── runner/                 # Logs for the main runner script
 │
-├── Reference/                      # 参考文献 / Reference
-├── main.py                         # 主执行脚本 / Main execution script
-├── run_experiment.py               # 实验运行脚本 / Experiment running script
-├── requirements.txt                # 项目依赖 / Project dependencies
-└── README.md                       # 项目说明 / Project description
-```
-## Installation and Setup
-
-### Environment Requirements
-
-- Python 3.8+
-- PyTorch 1.10+
-- CUDA 11.3+ (for GPU training)
-
-### Installation Steps
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/Cherry-808/DSS5104-ForecastDL.git
-   cd DSS5104-ForecastDL
-   ```
-
-2. Create a virtual environment
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # 在Windows上: venv\Scripts\activate
-   ```
-
-3. Install dependencies
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-### Data Preparation
-
-1. Place raw data in the corresponding `data/<dataset_name>/raw/` directory
-
-2. Run preprocessing script
-   ```bash
-   python src/data/preprocessing.py --dataset dataset_1
-   ```
-
-### Training Models
-
-Run training script, specifying model and dataset
-```bash
-python run_experiment.py --config experiments/configs/experiment_1.yaml
+├── notebooks/                  # Jupyter notebooks for exploration, analysis, visualization
+│
+├── main.py                     # (Optional) Main entry point if needed
+├── run_experiment.py           # Script to orchestrate experiment runs
+├── requirements.txt            # Project dependencies
+└── README.md                   # This file
 ```
 
-### Model Evaluation
+## Setup / Installation
 
-Evaluate model performance and generate comparison report
-```bash
-python src/evaluation/compare_models.py --results_dir experiments/results/experiment_1
-```
+1.  **Prerequisites:**
+    * Python 3.9 or higher recommended.
+    * `pip` and `venv` (or Conda).
 
-### Visualizing Results
+2.  **Clone the Repository (if applicable):**
+    ```bash
+    git clone <your-repo-url>
+    cd comparison_project
+    ```
 
-Generate result visualizations
-```bash
-python src/visualization/plot_results.py --results_dir experiments/results/experiment_1
-```
+3.  **Create and Activate Virtual Environment:**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Linux/macOS
+    # venv\Scripts\activate    # On Windows
+    ```
 
-## Adding New Models
+4.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    # You might need specific versions or builds depending on your OS/hardware
+    # e.g., for TensorFlow GPU support on Linux/Windows or Metal support on macOS
+    # Ensure 'pyarrow' is installed for Parquet support
+    ```
 
-1. Create a new model implementation file in the `src/models/` directory
+## Dataset
 
-2. Ensure the new model inherits from the base class defined in `base_model.py`
+* **Source:** [Kaggle Store Item Demand Forecasting Challenge](https://www.kaggle.com/competitions/store-item-demand-forecasting-challenge/data)
+* **Setup:**
+    1.  Download `train.csv` and `test.csv` from the Kaggle competition page.
+    2.  Create the directory structure `data/dataset_retail/raw/`.
+    3.  Place the downloaded `train.csv` and `test.csv` files into the `data/dataset_retail/raw/` directory.
+* **Note:** The `data/` directory (especially `raw/` and `processed/`) is typically included in `.gitignore` due to potential large file sizes. Users are expected to download the raw data themselves.
 
-3. Add parameters for the new model in the configuration file
+## Usage / Workflow
 
-## Adding New Datasets
+The project uses configuration files to define and run experiments comparing different models on specific data subsets.
 
-1. Create a new dataset directory under the `data/` directory
+1.  **Data Processing:**
+    * Run the data processing script to generate features and split data for a specific store-item combination. This creates `.parquet` files in the `processed` data directory.
+    * **Command:**
+        ```bash
+        python src/data/data_processing.py --store <store_id> --item <item_id> --cutoff <validation_cutoff_date> --input data/dataset_retail/raw/train.csv
+        ```
+    * *(Note: The script provided earlier hardcoded parameters. If using that version, ensure the hardcoded values are correct before running `python src/data/data_processing.py`)*
 
-2. Implement corresponding data loading functions
+2.  **Configuration:**
+    * Experiment parameters are defined in YAML files located in `outputs/configs/`.
+    * See `outputs/configs/retail_experiment_1.yaml` for an example structure.
+    * Key sections in the config file:
+        * `experiment_name`: A unique name for the experiment run.
+        * `dataset`: Specifies dataset paths, store/item IDs, target column, validation cutoff, etc.
+        * `models`: A dictionary where keys are model names (e.g., `prophet`, `transformer`) and values contain model-specific configurations, including hyperparameters under a `params:` key.
+        * `output_base_dir`, `models_dir`: Define base paths for saving results and models.
+        * `metrics_to_calculate`: List of metrics to compute.
 
-3. Update configuration files to include the new dataset
+3.  **Running Experiments:**
+    * Use the `run_experiment.py` script to execute the training and evaluation pipeline based on a configuration file.
+    * **Command:**
+        ```bash
+        python run_experiment.py --config outputs/configs/your_experiment_config.yaml
+        ```
+    * This script reads the config, identifies the models to run, and calls the corresponding `src/training/train_MODEL_retail.py` script for each model, passing the configuration path.
 
-## Experiment Configuration
+4.  **Outputs:**
+    * **Logs:** Detailed logs for the main runner and each model training run are saved in the `logs/` directory (organized by runner vs. model runs).
+    * **Processed Data:** Feature-engineered training/validation sets are saved as Parquet files in `data/dataset_retail/processed/`.
+    * **Saved Models:** Trained model files (e.g., `.pkl`, `.keras`) and scalers are saved in the `models/` directory (potentially within subdirectories defined in training scripts).
+    * **Results:** Experiment results (metrics, predictions, figures) are saved under the `output_base_dir` specified in the config, typically structured like: `outputs/results/retail/<experiment_name>/<model_name>/s<store_id>_i<item_id>/`.
 
-Example configuration file (`experiments/configs/experiment_1.yaml`):
+## Implemented Models
 
-```yaml
-experiment_name: "experiment_1"
-random_seed: 42
+*(As of YYYY-MM-DD - Update this)*
 
-datasets:
-  - name: "dataset_1"
-    train_split: 0.7
-    val_split: 0.15
-    test_split: 0.15
-    
-  - name: "dataset_2"
-    train_split: 0.8
-    val_split: 0.1
-    test_split: 0.1
+* **Prophet:** Using the `prophet` library.
+* **Transformer:** Implemented using Keras/TensorFlow.
+* *(Planned/In Progress): XGBoost, LSTM, TCN, ARIMA*
 
-models:
-  - name: "deep_model_1"
-    type: "deep"
-    params:
-      hidden_layers: [128, 64]
-      dropout: 0.2
-      
-  - name: "baseline_model_1"
-    type: "baseline"
-    params:
-      max_depth: 10
+## Contributing
 
-training:
-  batch_size: 64
-  learning_rate: 0.001
-  epochs: 100
-  early_stopping: 10
-  optimizer: "adam"
+*(Optional: Add guidelines if applicable)*
 
-evaluation:
-  metrics: ["accuracy", "f1_score", "precision", "recall", "roc_auc"]
-  cross_validation: 5
-```
+## License
 
-## 贡献指南 / Contribution Guidelines
+*(Optional: Specify project license, e.g., MIT, Apache 2.0)*
+Before finalizing:
 
-1. Fork仓库 / Fork the repository
-2. 创建功能分支 / Create a feature branch
-3. 提交更改 / Commit your changes
-4. 推送到分支 / Push to the branch
-5. 创建Pull Request / Create a Pull Request
+Replace <your-repo-url> if you clone from Git.
+Fill in the date in the "Implemented Models" section.
+Review the paths specified (e.g., data/dataset_retail/raw/) and make sure they exactly match your project's structure.
+Add any other specific setup notes relevant to your environment or chosen libraries.

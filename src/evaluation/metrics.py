@@ -29,7 +29,10 @@ def calculate_metrics(y_true: np.ndarray | pd.Series, y_pred: np.ndarray | pd.Se
         y_pred = np.array(y_pred)
 
         metrics['RMSE'] = np.sqrt(mean_squared_error(y_true, y_pred))
+        metrics['MSE'] = mean_squared_error(y_true, y_pred)
         metrics['MAE'] = mean_absolute_error(y_true, y_pred)
+        metrics['R2'] = 1 - (np.sum((y_true - y_pred) ** 2) / np.sum((y_true - np.mean(y_true)) ** 2))
+        metrics['Adj_R2'] = 1 - (1 - metrics['R2']) * (len(y_true) - 1) / (len(y_true) - p - 1)
 
         # Calculate MAPE carefully, avoiding division by zero
         mask = y_true != 0

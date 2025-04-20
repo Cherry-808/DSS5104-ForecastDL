@@ -410,7 +410,7 @@ def main(config_path: str):
         #   Determine if target needs inverse scaling based on whether it was in numerical_features
         target_in_num_features = target_col if target_col in numerical_features else None
         y_pred, y_true, metrics = predict_and_evaluate(
-            best_model_path, scaler, scaler_path, X_val_seq, y_val_seq_orig,
+            best_model_path, scaler, X_val_seq, y_val_seq_orig,
             numerical_features, target_in_num_features, use_log_transform
         )
         if metrics is None: raise ValueError("Failed to evaluate predictions.")

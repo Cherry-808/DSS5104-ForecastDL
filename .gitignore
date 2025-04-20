@@ -99,7 +99,7 @@ models/*/checkpoints/
 # Use Git LFS if you need to track models
 
 # --- Outputs / Results (Often Large or Run-Specific) ---
-outputs/results/
+# outputs/results/
 # Individual prediction files / figures (use Git LFS if needed)
 # outputs/results/**/*.csv
 # outputs/results/**/*.png

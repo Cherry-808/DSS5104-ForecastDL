@@ -72,3 +72,5 @@ temp/
 config.ini
 secrets.yaml
 credentials.json
+
+.DS_Store

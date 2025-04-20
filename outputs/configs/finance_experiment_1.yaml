@@ -1,0 +1,41 @@
+# Configuration for Finance (TSLA) Dataset - Transformer Experiment
+experiment_name: finance_tsla_comparison_v1
+
+# --- Dataset Configuration ---
+dataset:
+  name: dataset_finance      # Identifier for this finance dataset
+  processed_dir: data/dataset_finance/processed # Directory containing process_finance_data.csv
+  # Assuming data_loaders.py knows how to find/load the relevant file(s) from processed_dir
+  # store_id: Not applicable for this dataset
+  # item_id: Not applicable for this dataset
+  validation_cutoff_date: '2022-04-10' # Date to split train/validation sets
+  target_col: 'Close_TSLA'         # *** IMPORTANT: Verify this is your target column ***
+  use_log_transform: False         # Set based on whether your data/model needs log transform
+
+# --- Output Directories ---
+output_base_dir: outputs/results/finance # Base directory for results for this dataset
+models_dir: models                      # General directory for saving model files/scalers
+# Specific results will go into output_base_dir / experiment_name / model_name / ...
+
+# --- Models to Run ---
+models:
+  transformer:
+    params:
+      sequence_length: 60        # Input sequence length (e.g., 60 days)
+      head_size: 128             # Dimension of attention heads
+      num_heads: 4               # Number of attention heads (ensure head_size * num_heads is reasonable)
+      ff_dim: 128                # Hidden layer size in feed forward network inside transformer
+      num_transformer_blocks: 2  # Number of transformer encoder blocks
+      mlp_units: 64              # Size of the final MLP layers after transformer blocks
+      dropout: 0.1               # Dropout rate for attention and feedforward networks
+      mlp_dropout: 0.1           # Dropout rate for the final MLP layers
+      learning_rate: 0.001       # Optimizer learning rate
+      epochs: 50                 # Max number of training epochs (adjust as needed)
+      batch_size: 64             # Training batch size
+      early_stopping_patience: 10 # Patience for early stopping based on validation loss
+
+  # - Add other models like xgboost, prophet here if you plan to run them
+  #   with their respective parameters under a unique key (e.g., 'xgboost': { ... })
+
+# --- Evaluation ---
+metrics_to_calculate: ['RMSE', 'MSE', 'MAE', 'MAPE', 'R2', 'Adj_R2']

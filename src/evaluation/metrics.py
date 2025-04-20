@@ -6,16 +6,17 @@ import json
 import os
 import logging
 
-def calculate_metrics(y_true: np.ndarray | pd.Series, y_pred: np.ndarray | pd.Series) -> dict:
+def calculate_metrics(y_true: np.ndarray | pd.Series, y_pred: np.ndarray | pd.Series, p: int = 1) -> dict:
     """
-    Calculates standard regression metrics.
+    Calculates standard regression metrics, including Adjusted R².
 
     Args:
         y_true (np.ndarray | pd.Series): Array of true values.
         y_pred (np.ndarray | pd.Series): Array of predicted values.
+        p (int): Number of predictors (features) in the model.
 
     Returns:
-        dict: Dictionary containing calculated metrics (RMSE, MAE, MAPE).
+        dict: Dictionary containing calculated metrics (RMSE, MSE, MAE, R², Adjusted R², MAPE).
               Returns empty dict if inputs are invalid.
     """
     metrics = {}
@@ -28,25 +29,33 @@ def calculate_metrics(y_true: np.ndarray | pd.Series, y_pred: np.ndarray | pd.Se
         y_true = np.array(y_true)
         y_pred = np.array(y_pred)
 
+        # Calculate metrics
         metrics['RMSE'] = np.sqrt(mean_squared_error(y_true, y_pred))
         metrics['MSE'] = mean_squared_error(y_true, y_pred)
         metrics['MAE'] = mean_absolute_error(y_true, y_pred)
         metrics['R2'] = 1 - (np.sum((y_true - y_pred) ** 2) / np.sum((y_true - np.mean(y_true)) ** 2))
-        metrics['Adj_R2'] = 1 - (1 - metrics['R2']) * (len(y_true) - 1) / (len(y_true) - p - 1)
+
+        # Calculate Adjusted R²
+        n = len(y_true)  # Number of samples
+        if n > p + 1:  # Ensure valid degrees of freedom
+            metrics['Adj_R2'] = 1 - (1 - metrics['R2']) * (n - 1) / (n - p - 1)
+        else:
+            metrics['Adj_R2'] = np.nan  # Not enough samples to calculate Adjusted R²
+            logging.warning("Adjusted R² calculation skipped due to insufficient samples.")
 
         # Calculate MAPE carefully, avoiding division by zero
         mask = y_true != 0
         if np.sum(mask) > 0:
             metrics['MAPE'] = np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
         else:
-            metrics['MAPE'] = np.nan # Or indicate calculation wasn't possible
+            metrics['MAPE'] = np.nan  # Or indicate calculation wasn't possible
             logging.warning("MAPE calculation skipped as all true values are zero.")
 
         logging.info(f"Metrics calculated: {metrics}")
 
     except Exception as e:
         logging.exception(f"Error calculating metrics: {e}")
-        return {} # Return empty dict on error
+        return {}  # Return empty dict on error
 
     return metrics
 

@@ -207,7 +207,7 @@ def main(config_path: str):
 
         # 6. Predict and Evaluate (reuse generic evaluator)
         y_pred, y_true, metrics = predict_evaluate_base(
-            best_model_path, scaler, scaler_path, X_val_seq, y_val_seq_orig,
+            best_model_path, scaler, X_val_seq, y_val_seq_orig,
             numerical_features, target_in_num_features, use_log_transform
         )
         if metrics is None: raise ValueError("Failed to evaluate predictions.")

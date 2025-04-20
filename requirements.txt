@@ -8,7 +8,7 @@ pyarrow>=10.0.0 # 用于读写 Parquet 文件 / For reading/writing Parquet file
 # --- Time Series Models ---
 prophet>=1.1.0   # Prophet 模型库 / Prophet model library
 # statsmodels>=0.13.0 # 如果你使用了 ARIMA 或内置的分解/ACF/PACF / If using ARIMA or built-in decomposition/ACF/PACF
-xgboost>=1.6.0  # 如果你实现了 XGBoost / If implementing XGBoost
+xgboost>=3.0.0  # 如果你实现了 XGBoost / If implementing XGBoost
 tensorflow>=2.10.0 # TensorFlow 核心库 (包含 Keras) / TensorFlow core (includes Keras)
 # 注意: 在 Colab 或带 Nvidia GPU 的 Linux/Windows 上，标准 tensorflow 包通常就够了
 # 在 M 系列 Mac 上本地运行时，确保安装了 tensorflow-metal (pip install tensorflow-metal) 来利用 GPU (MPS)

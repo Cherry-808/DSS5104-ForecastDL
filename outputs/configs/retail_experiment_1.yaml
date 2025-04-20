@@ -18,9 +18,14 @@ models_dir: models # General directory for saving model files/scalers
 
 # --- Models to Run ---
 models:
-  prophet:
-    params:
-      seasonality_mode: 'additive'
+  #prophet:
+    #params:
+      #seasonality_mode: 'additive'
+  #arima:
+    #params:
+     # order: [7, 1, 1] # Example non-seasonal (p,d,q) - TUNE THIS!
+      #seasonal_order: [1, 0, 1, 7] # Example seasonal (P,D,Q,m) for weekly - TUNE THIS!
+      # use_auto_arima: false # Add flag to control auto_arima usage
 
   transformer:
     params:
@@ -37,7 +42,39 @@ models:
       batch_size: 64
       early_stopping_patience: 10
       
-  # - xgboost # Add other models here as you create their train scripts
+
+  #xgboost:
+    #params:
+    #  n_estimators: 500
+    #  learning_rate: 0.05
+    #  max_depth: 7
+    ##  subsample: 0.7
+     # colsample_bytree: 0.7
+    #  early_stopping_rounds: 25
+      # seed: 42 (already in DEFAULT_XGB_PARAMS)
+
+  #lstm:
+  #  params:
+  #    sequence_length: 60
+  #    lstm_units: [64, 32] # Two layers
+  #    dropout: 0.1
+  #    recurrent_dropout: 0.1
+  #    learning_rate: 0.001
+  #    epochs: 1
+  #    batch_size: 64
+  #    early_stopping_patience: 10
+
+ # tcn:
+ #   params:
+ #     sequence_length: 60
+  #    nb_filters: 64
+  #    kernel_size: 3
+  #    dilations: [1, 2, 4, 8, 16] # Example dilation factors
+  #    dropout_rate: 0.1
+   #   learning_rate: 0.001
+  #    epochs: 1
+  #    batch_size: 64
+  #    early_stopping_patience: 10
 
 
 

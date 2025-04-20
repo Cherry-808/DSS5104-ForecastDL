@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import layers
 # Try importing TCN, handle if not installed
 try:
     from tcn import TCN # From keras-tcn library
@@ -171,7 +172,7 @@ def main(config_path: str):
 
         # 6. Predict and Evaluate (reuse generic evaluator)
         y_pred, y_true, metrics = predict_evaluate_base(
-            best_model_path, scaler, scaler_path, X_val_seq, y_val_seq_orig,
+            best_model_path, scaler, X_val_seq, y_val_seq_orig,
             numerical_features, target_in_num_features, use_log_transform
         )
         if metrics is None: raise ValueError("Failed to evaluate predictions.")

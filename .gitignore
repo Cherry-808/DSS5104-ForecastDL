@@ -57,7 +57,6 @@ tmp/
 temp/
 
 # 大文件
-*.csv
 *.json
 *.sqlite
 *.db
@@ -72,3 +71,5 @@ temp/
 config.ini
 secrets.yaml
 credentials.json
+
+.DS_Store

@@ -23,3 +23,11 @@ def generate_model_metrics(predictions, test):
     adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
     
     return rmse, mse, mae, mape, r2, adj_r2
+
+def log_system_usage(tag=""):
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss / (1024 ** 2)
+    cpu = process.cpu_percent(interval=1)
+    print(f"[{tag}] Memory Usage: {mem:.2f} MB | CPU Usage: {cpu:.2f}%")
+    return mem, cpu
+

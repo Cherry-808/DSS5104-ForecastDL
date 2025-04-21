@@ -7,6 +7,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os, time, psutil, tensorflow as tf
 from datetime import datetime
+import gc
+import random
+np.random.seed(42)
+tf.random.set_seed(42)
+random.seed(42)
 
 # Build and compile the LSTM model
 def build_lstm_model(seq_length, n_features):
@@ -75,6 +80,7 @@ def evaluate_predictions(y_true, y_pred, n_features=1):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_true, y_pred)
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-10))) * 100
     r2 = r2_score(y_true, y_pred)
     n = len(y_true)
     p = n_features
@@ -95,7 +101,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     results = {}
 
     # Prepare your dataset
-    X_train, X_test, y_train, y_test, scaler, date_index = prepare_lstm_data(data, target, seq_length, test_ratio, date_col)
+    X_train, X_test, y_train, y_test, scaler, dates = prepare_lstm_data(data, target, seq_length, test_ratio, date_col)
 
     # Build model
     n_features = X_train.shape[2]
@@ -138,19 +144,135 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     y_test_inv = scaler.inverse_transform(y_test_full)[:, -1]
 
     # Plot results
-    plot_predictions(date_index, y_test_inv, y_pred_inv)
+    plot_predictions(dates, y_test_inv, y_pred_inv)
 
     # Print metrics
     rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(y_test_inv, y_pred_inv, n_features=X_test.shape[2])
-    print(f"RMSE: {rmse:.3f}, MSE: {mse:.3f}, MAE: {mae:.3f}, MAPE: {mape:.3f}, R²: {r2:.3f}, Adj_R²: {adj_r2:.3f}")
  
-    results['Dataset'] = data.name   
-    results['RMSE'] = rmse
-    results['MSE'] = mse
-    results['MAE'] = mae
-    results['MAPE'] = mape        
-    results['R²'] = r2
-    results['Adj_R²'] = adj_r2    
-    
+    # results['Dataset'] = data.name   
+    # results['RMSE'] = rmse
+    # results['MSE'] = mse
+    # results['MAE'] = mae
+    # results['MAPE'] = mape        
+    # results['R²'] = r2
+    # results['Adj_R²'] = adj_r2    
+
+    results.update({
+        'Dataset': data.name if hasattr(data, 'name') else 'Unnamed',
+        'RMSE': rmse, 'MSE': mse, 'MAE': mae, 'MAPE': mape,
+        'R²': r2, 'Adj_R²': adj_r2,
+        'TrainingTime': total_time,
+        'Device': tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU',
+        'FinalMemoryMB': psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    })
+
+    # After model training
+    mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    device = tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU'
+
+    print("\nEvaluation Summary")
+    print("-" * 75)
+    print(f"{'Metric':<15}{'Value':>15}")
+    print("-" * 75)
+    print(f"{'RMSE':<15}{rmse:>15.3f}")
+    print(f"{'MSE':<15}{mse:>15.3f}")
+    print(f"{'MAE':<15}{mae:>15.3f}")
+    print(f"{'MAPE (%)':<15}{mape:>15.3f}")
+    print(f"{'R²':<15}{r2:>15.3f}")
+    print(f"{'Adj R²':<15}{adj_r2:>15.3f}")
+    print(f"{'Training Time (s)':<15}{total_time:>15.2f}")
+    print(f"{'Memory Usage (MB)':<15}{psutil.Process(os.getpid()).memory_info().rss / (1024**2):>15.2f}")
+    print(f"{'Device Used':<15}{device:>15}")
+    print("-" * 75)
+
+    # --- Plot and Save Prediction Plot ---
+    plot_dir = os.path.join("outputs/results/output_LSTM", data.name)
+    os.makedirs(plot_dir, exist_ok=True)
+
+    plot_path = os.path.join(plot_dir, f"{data.name}_prediction_plot.png")
+    plt.figure(figsize=(10, 5))
+    plt.plot(dates, y_test_inv, label='Actual')
+    plt.plot(dates, y_pred_inv, label='Predicted', linestyle='--')
+    plt.title(f"{data.name} LSTM Forecast")
+    plt.xlabel("Date")
+    plt.ylabel("Target")
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(plot_path)
+    plt.close()
+
+    # --- Save Evaluation Metrics Log ---
+    log_path = os.path.join(plot_dir, f"{data.name}_metrics_log.txt")
+    with open(log_path, "a", encoding="utf-8") as f:
+        model.summary(print_fn=lambda x: f.write(x + '\n'))
+
+    with open(log_path, "w") as f:
+        f.write(f"Dataset: {data.name}\n")
+        f.write(f"Timestamp: {datetime.now()}\n")
+        f.write(f"Target Column: {target}\n")
+        f.write(f"Model: LSTM\n")
+        f.write(f"Sequence Length: {seq_length}\n")
+        f.write(f"Test Ratio: {test_ratio}\n")
+        f.write(f"Batch Size: {batch_size}\n")
+        f.write(f"Epochs: {epochs}\n")
+        f.write(f"Device: {device}\n")
+        f.write(f"Final Memory Usage: {mem:.2f} MB\n")
+        f.write(f"Training Time: {total_time:.2f} seconds\n\n")
+
+        f.write("Evaluation Metrics:\n")
+        f.write(f" - RMSE: {rmse:.3f}\n")
+        f.write(f" - MSE: {mse:.3f}\n")
+        f.write(f" - MAE: {mae:.3f}\n")
+        f.write(f" - MAPE: {mape:.3f}\n")
+        f.write(f" - R²: {r2:.3f}\n")
+        f.write(f" - Adjusted R²: {adj_r2:.3f}\n")
+        
+    # --- Save model weights ---
+    model_path = os.path.join(plot_dir, f"{data.name}_model.h5")
+    model.save(model_path)
+
+    # --- Plot training loss ---
+    history_path = os.path.join(plot_dir, f"{data.name}_loss_plot.png")
+    plt.figure(figsize=(8, 4))
+    plt.plot(model.history.history['loss'], label='Training Loss')
+    plt.plot(model.history.history['val_loss'], label='Validation Loss')
+    plt.title(f"{data.name} Training Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss (MSE)")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(history_path)
+    plt.close()
+
+    # --- CSV Log (append to master metrics CSV) ---
+    csv_metrics_path = os.path.join("outputs/results/output_LSTM", "all_model_metrics.csv")
+    metrics_entry = pd.DataFrame([{
+        "Dataset": data.name,
+        "Target": target,
+        "RMSE": rmse,
+        "MSE": mse,
+        "MAE": mae,
+        "MAPE": mape,
+        "R²": r2,
+        "Adj_R²": adj_r2,
+        "TrainingTime_s": total_time,
+        "BatchSize": batch_size,
+        "Epochs": epochs,
+        "SequenceLength": seq_length,
+        "TestRatio": test_ratio,
+        "Device": device,
+        "FinalMemoryMB": mem,
+    }])
+
+    # Append or create
+    if os.path.exists(csv_metrics_path):
+        metrics_entry.to_csv(csv_metrics_path, mode='a', index=False, header=False)
+    else:
+        metrics_entry.to_csv(csv_metrics_path, index=False)
+
+
     return results
 

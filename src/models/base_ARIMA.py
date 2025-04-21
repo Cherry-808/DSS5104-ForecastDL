@@ -1,42 +1,65 @@
 from pmdarima import auto_arima
+from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os, time, psutil, tensorflow as tf
 from datetime import datetime
-from statsmodels.tsa.arima.model import ARIMA
 
-def run_arima_on_dataset(data, target, date_col, test_ratio, engine, order=None):
+def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels", order=(5,1,0)):
     results = {}
     df = data.dropna().copy()
     df = df.sort_values(by=date_col)
 
-    # if date_col in df.columns:
-    #     # date_index = df[date_col].iloc[-int(len(df) * test_ratio):].reset_index(drop=True)
-    #     date_index = data[date_col].iloc[split_idx:].reset_index(drop=True)
-    #     df = df.drop(columns=[date_col])
-    # else:
-    #     date_index = df.index[-int(len(df) * test_ratio):]
-    
     split_idx = int(len(df) * (1 - test_ratio))
-    date_index = data[date_col].iloc[split_idx:].reset_index(drop=True)
-    df = df.drop(columns=[date_col])    
 
+    # Preserve aligned date index (post-split) using cleaned df
+    date_index = df[date_col].iloc[split_idx:].reset_index(drop=True)
+
+    # Drop date column for modeling
+    df = df.drop(columns=[date_col])
+    
     y = df[target]
-    X = df.drop(columns=[target])
-    split_idx = int(len(df) * (1 - test_ratio))
+    X = df.drop(columns=[target]) if df.shape[1] > 1 else pd.DataFrame(index=df.index)
+
+    # Split
     y_train, y_test = y[:split_idx], y[split_idx:]
     X_train, X_test = X[:split_idx], X[split_idx:]
 
-    # Log start
+    # Convert to numeric
+    X_train = X_train.apply(pd.to_numeric, errors='coerce')
+    X_test = X_test.apply(pd.to_numeric, errors='coerce')
+    y_train = pd.to_numeric(y_train, errors='coerce')
+    y_test = pd.to_numeric(y_test, errors='coerce')
+
+    # Clean training
+    valid_train_idx = (~X_train.isnull().any(axis=1)) & (~y_train.isnull())
+    X_train = X_train[valid_train_idx]
+    y_train = y_train[valid_train_idx]
+
+    # Reset index for alignment
+    X_test = X_test.reset_index(drop=True)
+    y_test = y_test.reset_index(drop=True)
+    date_index = date_index.reset_index(drop=True)
+
+    # Now apply mask safely
+    valid_test_idx = (~X_test.isnull().any(axis=1)) & (~y_test.isnull())
+    X_test = X_test[valid_test_idx]
+    y_test = y_test[valid_test_idx]
+    date_index = date_index[valid_test_idx].reset_index(drop=True)
+
+    if X_train.empty or X_test.empty or y_train.empty or y_test.empty:
+        raise ValueError("Training or testing data is empty after cleaning. Check for NaNs or formatting issues.")
+
+    # Log system usage
     start_time = time.time()
     mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
 
     if engine == "statsmodels":
         model = ARIMA(endog=y_train, exog=X_train, order=order).fit()
         y_pred = model.forecast(steps=len(y_test), exog=X_test)
-    else:  # pmdarima
+    else:
         model = auto_arima(y_train, exogenous=X_train, seasonal=False, stepwise=True, suppress_warnings=True)
         y_pred = model.predict(n_periods=len(y_test), exogenous=X_test)
 
@@ -55,12 +78,11 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine, order=None)
     adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
 
     device = tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU'
-
     model_label = "Statsmodels ARIMA" if engine == "statsmodels" else "PMDARIMA"
 
     # Print summary
     print(f"\n[ARIMA - {data.name}] Evaluation Summary ({model_label})")
-    print(f"{'-'*75}")
+    print("-" * 75)
     print(f"{'RMSE':<20}: {rmse:.3f}")
     print(f"{'MAE':<20}: {mae:.3f}")
     print(f"{'MAPE (%)':<20}: {mape:.3f}")
@@ -69,12 +91,13 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine, order=None)
     print(f"{'Training Time (s)':<20}: {total_time:.2f}")
     print(f"{'Memory Used (MB)':<20}: {mem_used:.2f}")
     print(f"{'Device Used':<20}: {device}")
-    print(f"{'-'*75}")
+    print("-" * 75)
 
-    # Save plots
+    # Output path
     plot_dir = os.path.join("outputs/results/output_ARIMA", data.name)
     os.makedirs(plot_dir, exist_ok=True)
 
+    # Save plot
     plt.figure(figsize=(10, 5))
     plt.plot(date_index, y_test.values, label='Actual')
     plt.plot(date_index, y_pred, label='Predicted', linestyle='--')
@@ -83,8 +106,8 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine, order=None)
     plt.ylabel("Target")
     plt.xticks(rotation=45)
     plt.legend()
-    plt.tight_layout()
     plt.grid(True)
+    plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, f"{data.name}_prediction_plot.png"))
     plt.show()
 
@@ -107,7 +130,7 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine, order=None)
         f.write(f" - R²: {r2:.3f}\n")
         f.write(f" - Adjusted R²: {adj_r2:.3f}\n")
 
-    # Append to master CSV
+    # Save to CSV
     csv_metrics_path = os.path.join("outputs/results/output_ARIMA", "all_model_metrics.csv")
     metrics_entry = pd.DataFrame([{
         "Dataset": data.name,

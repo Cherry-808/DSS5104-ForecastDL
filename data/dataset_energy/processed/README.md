@@ -10,14 +10,14 @@ The data covers the period from 1 January 2022 to 31 December 2024, and includes
 | **Data**                     | **Type**    | **Boundary** | **Frequency** | **Source** |
 |-----------------------------|-------------|--------------|----------------|------------|
 | Timestamp                   | Timeindex   | NSW          | 5-min          | NA
-| Energy Price                | Output      | NSW          | 5-min          | [Australian Energy Market Operator (AEMO)] |
-| Energy Demand               | Predictor   | NSW          | 5-min          | [Australian Energy Market Operator (AEMO)]|
-| Global Crude Oil Price      | Predictor   | Global       | Daily          | [U.S. Energy Information Administration (EIA)] |
-| Global Natural Gas Price    | Predictor   | Global       | Daily          | [U.S. Energy Information Administration (EIA)] |
-| Rain                        | Predictor   | NSW          | Daily          | [Australia Bureau of Meteorology (BoM)] |
-| Solar Exposure              | Predictor   | NSW          | 5-min          | [Solcast]|
-| Temperature                 | Predictor   | NSW          | 5-min          | [Solcast]|
-| Renewable Mix               | Predictor   | NSW          | Hourly         | [Electricity Maps]|
+| Energy Price                | Output      | NSW          | 5-min          | Australian Energy Market Operator (AEMO) |
+| Energy Demand               | Predictor   | NSW          | 5-min          | Australian Energy Market Operator (AEMO)|
+| Global Crude Oil Price      | Predictor   | Global       | Daily          | U.S. Energy Information Administration (EIA) |
+| Global Natural Gas Price    | Predictor   | Global       | Daily          | U.S. Energy Information Administration (EIA) |
+| Rain                        | Predictor   | NSW          | Daily          | Australia Bureau of Meteorology (BoM) |
+| Solar Exposure              | Predictor   | NSW          | 5-min          | Solcast|
+| Temperature                 | Predictor   | NSW          | 5-min          | Solcast|
+| Renewable Mix               | Predictor   | NSW          | Hourly         | Electricity Maps|
 
 
 ### `timestamp` (datetime64[ns])

@@ -1,7 +1,7 @@
 # Column Definitions - Processed Energy Dataset
 
 This file documents the columns available in `df_with_lag_indicators.csv.gz` used for time-series forecasting of energy prices in New South Wales, Australia. It is part of the DSS5104-ForecastDL project.
-/
+
 The data covers the period from 1 January 2022 to 31 December 2024, and includes both local and global features.
 ---
 

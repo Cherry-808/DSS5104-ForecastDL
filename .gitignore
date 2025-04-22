@@ -1,75 +1,113 @@
+# .gitignore
 
-data/raw/
-data/processed/
-data/external/
-
-
-models/saved_models/
-models/pretrained/
-*.h5
-*.pt
-*.pth
-*.onnx
-*.pb
-*.tflite
-*.weights
-
-
-logs/
-tensorboard/
-wandb/
-*.log
-
-outputs/
-results/
-experiments/results/
-
-
+# --- Python ---
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
-.coverage
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
+# *.manifest
+# *.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
 htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
-
+# --- Virtual Environments ---
 venv/
 env/
-.env/
-.venv/
+.env
+.venv
 ENV/
+env.bak/
+venv.bak/
 
-# IDE相关文件
-.idea/
+# --- IDE / Editor Files ---
 .vscode/
-*.swp
-*.swo
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- OS Files ---
 .DS_Store
+Thumbs.db
+
+# --- Data Files (Often Large - Avoid Committing Directly) ---
+# Raw Data
+data/dataset_retail/raw/*.csv
+data/dataset_retail/raw/*.zip
+# Processed Data
+#data/dataset_retail/processed/*.parquet
+data/dataset_retail/processed/*.pkl
+data/dataset_retail/processed/*.npy
+# If you decide to use Git LFS for processed data, adjust accordingly
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Saved Models (Often Large) ---
+models/*.pkl
+models/*.keras
+models/*.pt
+models/*.pth
+models/*.pb
+models/prophet_model.pkl # Specific examples if needed
+models/scaler_*.pkl
+# Saved model checkpoints within subdirectories
+models/*/saved_model/
+models/*/checkpoints/
+# Use Git LFS if you need to track models
+
+# --- Outputs / Results (Often Large or Run-Specific) ---
+# outputs/results/
+# Individual prediction files / figures (use Git LFS if needed)
+# outputs/results/**/*.csv
+# outputs/results/**/*.png
+# outputs/results/**/*.json
+
+# --- Notebook Checkpoints ---
 .ipynb_checkpoints/
 
-# 打包文件
-dist/
-build/
-*.egg-info/
-
-# 临时文件
-tmp/
-temp/
-
-# 大文件
-*.json
-*.sqlite
-*.db
-*.hdf5
-*.pkl
-*.pickle
-
-# 敏感信息文件
-*.pem
-*.env
-.env.local
-config.ini
-secrets.yaml
-credentials.json
-
-.DS_Store
+# --- Other ---
+*.swp
+*~

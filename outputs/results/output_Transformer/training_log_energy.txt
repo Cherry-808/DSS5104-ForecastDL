@@ -1,0 +1,49 @@
+
+=================================================
+Transformer Model Training Log (Google Colab)
+=================================================
+Date and Time: 2025-04-22 11:58:15 (UTC)
+
+--- Data Configuration ---
+Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
+Data File: df_with_lag_indicators.csv.gz
+Date/Index Column: timestamp
+Target Column: Energy_Price
+Feature Columns Used: ['Energy_Demand', 'Energy_Price', 'Crude_Oil_Price', 'Natural_Gas_Price', 'Rainfall', 'Carbon_Intensity', 'Renewable_Energy_Percentage', 'Temperature', 'Solar_Exposure', 'hour', 'dayofweek', 'month', 'lag_1', 'lag_12', 'lag_288', 'lag_576', 'rolling_mean_24', 'rolling_std_24']
+Sequence Length: 60
+Test Set Size: 0.2
+
+--- Model Hyperparameters ---
+Head Size: 128
+Number of Heads: 4
+Feed-Forward Dim: 128
+Transformer Blocks: 4
+MLP Units: [64]
+Dropout: 0.1
+MLP Dropout: 0.1
+
+--- Training Details ---
+Epochs Run: 50 (Max Epochs Configured: 50)
+Batch Size: 64
+Learning Rate: 0.0001
+Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_energy.keras
+Training Time: 3782.18 seconds
+
+--- Resource Usage ---
+Memory Usage Before Training: 6105.69 MB
+Memory Usage After Training: 6969.96 MB
+Approx. Memory Increase During Training: 864.27 MB
+
+--- Evaluation Metrics (Test Set) ---
+RMSE: 0.442886
+MSE: 0.196148
+MAE: 0.214052
+MAPE (%): 28.75
+R2 Score: 0.722834
+Adjusted R2 Score: 0.722749
+
+--- Output Files ---
+Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_energy.png
+Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_energy.png
+Log File: /content/drive/MyDrive/Transformer_Project/training_log_energy.txt
+=================================================

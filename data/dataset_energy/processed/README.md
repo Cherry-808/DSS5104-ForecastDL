@@ -26,7 +26,7 @@ The timeindex for the record. It is based on NSW timezone and is in 5-min interv
 ### `Energy_Price` (float64)
 The log-adjusted energy price. This is the main target variable. It has been treated to remove outliers (>3 standard deviation), as energy prices in Australia tend to surge during peak period. There are also instances where energy prices become negative when the supply exceeds the demand. All such outliers have been removed.
 
-### `Other Data Processing` (float64)
+### `Other Data Processing`
 Where predictors have a interval frequency larger than the target variable, e.g. daily data or hourly data, they have been upsampled to match the 5-min frequency of the target variable.
 
 ---

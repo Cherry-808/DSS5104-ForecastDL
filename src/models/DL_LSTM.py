@@ -46,7 +46,8 @@ def prepare_lstm_data(df, target_col, seq_length, test_ratio, date_col=None):
 
     # Keep only numeric columns
     df_numeric = df.select_dtypes(include=[np.number])
-    feature_cols = [col for col in df_numeric.columns if col != target_col]
+    feature_cols = [col for col in df_numeric.columns if col != target_col] # multivariate
+    # feature_cols = [target_col]  # univariate - past values of itself only
 
     # Apply MinMax scaling
     scaler = MinMaxScaler()
@@ -61,13 +62,13 @@ def prepare_lstm_data(df, target_col, seq_length, test_ratio, date_col=None):
     return X_train, X_test, y_train.reshape(-1, 1), y_test.reshape(-1, 1), scaler, date_index[-len(y_test):]
 
 # Plot predictions vs actuals
-def plot_predictions(dates, actual, predicted, title="Model Predictions vs Actual"):
+def plot_predictions(dates, actual, predicted, title, target, date_col):
     plt.figure(figsize=(10, 5))
     plt.plot(dates, actual, label='Actual')
     plt.plot(dates, predicted, label='Predicted', linestyle='--')
     plt.title(title)
-    plt.xlabel("Date")
-    plt.ylabel("Price")
+    plt.xlabel(date_col)
+    plt.ylabel(target)
     plt.xticks(rotation=45)
     plt.legend()
     plt.tight_layout()
@@ -79,7 +80,7 @@ def evaluate_predictions(y_true, y_pred, n_features=1):
     mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_true, y_pred)
-    mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    # mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-10))) * 100
     r2 = r2_score(y_true, y_pred)
     n = len(y_true)
@@ -91,10 +92,11 @@ def evaluate_predictions(y_true, y_pred, n_features=1):
 # Function to log system usage
 def log_system_usage(tag=""):
     process = psutil.Process(os.getpid())
-    mem = process.memory_info().rss / (1024 ** 2)
+    mem = process.memory_info().rss / (1024 ** 2) # in MB
+    peak_memory_mb = process.memory_info().peak_wset / (1024 ** 2)  # in MB
     cpu = process.cpu_percent(interval=1)
-    print(f"[{tag}] Memory Usage: {mem:.2f} MB | CPU Usage: {cpu:.2f}%")
-    return mem, cpu
+    print(f"[{tag}] Memory Usage: {mem:.2f} MB | Peak Memory Usage: {peak_memory_mb:.2f} MB | CPU Usage: {cpu:.2f}%")
+    return mem, peak_memory_mb, cpu
 
 # Main function to run the LSTM model
 def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, batch_size):
@@ -109,6 +111,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     
     # Log performance before training
     start_time = time.time()
+    mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
     log_system_usage("Before Training")
 
     # Callbacks
@@ -124,7 +127,11 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
 
     log_system_usage("After Training")
     total_time = time.time() - start_time
+    mem_after = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    mem_used = mem_after - mem_before
+    
     print(f"Total Training Time: {total_time:.2f} seconds")
+    print(f"Memory Used (MB): {mem_used:.2f}")
     
     # Predict
     y_pred = model.predict(X_test)
@@ -144,18 +151,15 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     y_test_inv = scaler.inverse_transform(y_test_full)[:, -1]
 
     # Plot results
-    plot_predictions(dates, y_test_inv, y_pred_inv)
+    plot_predictions(dates, y_test_inv, y_pred_inv, "Model Predictions vs Actual", target, date_col)
 
     # Print metrics
-    rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(y_test_inv, y_pred_inv, n_features=X_test.shape[2])
- 
-    # results['Dataset'] = data.name   
-    # results['RMSE'] = rmse
-    # results['MSE'] = mse
-    # results['MAE'] = mae
-    # results['MAPE'] = mape        
-    # results['R²'] = r2
-    # results['Adj_R²'] = adj_r2    
+    # rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(y_test_inv, y_pred_inv, n_features=X_test.shape[2])  
+    rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(
+        np.exp(y_test_inv) if data.name == 'Energy' else y_test_inv,
+        np.exp(y_pred_inv) if data.name == 'Energy' else y_pred_inv,
+        n_features=X_test.shape[2]
+    )
 
     results.update({
         'Dataset': data.name if hasattr(data, 'name') else 'Unnamed',
@@ -163,11 +167,16 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         'R²': r2, 'Adj_R²': adj_r2,
         'TrainingTime': total_time,
         'Device': tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU',
-        'FinalMemoryMB': psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+        'FinalMemoryMB': psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2),
+        'PeakMemoryMB': psutil.Process(os.getpid()).memory_info().peak_wset / (1024 ** 2),
+        'CPUUsage': psutil.cpu_percent(interval=1),
+        'TrainingLoss': model.history.history['loss'][-1] if hasattr(model, 'history') else None,
+        'Model': 'LSTM'       
     })
 
     # After model training
     mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    peak_memory_mb = psutil.Process(os.getpid()).memory_info().peak_wset / (1024 ** 2)  # in MB
     device = tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU'
 
     print("\nEvaluation Summary")
@@ -182,6 +191,8 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     print(f"{'Adj R²':<15}{adj_r2:>15.3f}")
     print(f"{'Training Time (s)':<15}{total_time:>15.2f}")
     print(f"{'Memory Usage (MB)':<15}{psutil.Process(os.getpid()).memory_info().rss / (1024**2):>15.2f}")
+    print(f"{'Peak Memory (MB)':<15}{psutil.Process(os.getpid()).memory_info().peak_wset / (1024 ** 2) :>15.2f}")
+    print(f"{'CPU Usage (%)':<15}{psutil.cpu_percent(interval=1):>15.2f}")
     print(f"{'Device Used':<15}{device:>15}")
     print("-" * 75)
 
@@ -191,8 +202,10 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
 
     plot_path = os.path.join(plot_dir, f"{data.name}_prediction_plot.png")
     plt.figure(figsize=(10, 5))
-    plt.plot(dates, y_test_inv, label='Actual')
-    plt.plot(dates, y_pred_inv, label='Predicted', linestyle='--')
+    # plt.plot(dates, y_test_inv, label='Actual')
+    # plt.plot(dates, y_pred_inv, label='Predicted', linestyle='--')
+    plt.plot(dates, np.exp(y_test_inv) if data.name == 'Energy' else y_test_inv, label='Actual')
+    plt.plot(dates, np.exp(y_pred_inv) if data.name == 'Energy' else y_pred_inv, label='Predicted', linestyle='--')    
     plt.title(f"{data.name} LSTM Forecast")
     plt.xlabel("Date")
     plt.ylabel("Target")
@@ -219,7 +232,10 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         f.write(f"Epochs: {epochs}\n")
         f.write(f"Device: {device}\n")
         f.write(f"Final Memory Usage: {mem:.2f} MB\n")
+        f.write(f"Peak Memory Usage: {peak_memory_mb:.2f} MB\n")
+        f.write(f"CPU Usage: {psutil.cpu_percent(interval=1):.2f}%\n")
         f.write(f"Training Time: {total_time:.2f} seconds\n\n")
+        f.write(f"Training Loss: {model.history.history['loss'][-1] if hasattr(model, 'history') else None}\n")
 
         f.write("Evaluation Metrics:\n")
         f.write(f" - RMSE: {rmse:.3f}\n")
@@ -245,7 +261,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(history_path)
-    plt.close()
+    plt.show()
 
     # --- CSV Log (append to master metrics CSV) ---
     csv_metrics_path = os.path.join("outputs/results/output_LSTM", "all_model_metrics.csv")
@@ -265,6 +281,11 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         "TestRatio": test_ratio,
         "Device": device,
         "FinalMemoryMB": mem,
+        "PeakMemoryMB": mem,
+        "CPUUsage": psutil.cpu_percent(interval=1),
+        "Model": "LSTM",
+        "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "TrainingLoss": model.history.history['loss'][-1] if hasattr(model, 'history') else None,
     }])
 
     # Append or create

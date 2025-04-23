@@ -16,9 +16,11 @@ random.seed(42)
 def log_system_usage(tag=""):
     process = psutil.Process(os.getpid())
     mem = process.memory_info().rss / (1024 ** 2)
+    peak_mem = process.memory_info().peak_wset / (1024 ** 2) if hasattr(process.memory_info(), 'peak_wset') else mem
+    
     cpu = process.cpu_percent(interval=1)
-    print(f"[{tag}] Memory Usage: {mem:.2f} MB | CPU Usage: {cpu:.2f}%")
-    return mem, cpu
+    print(f"[{tag}] Memory Usage: {mem:.2f} MB | Peak Memory Usage: {peak_mem:.2f} MB | CPU Usage: {cpu:.2f}%")
+    return mem, peak_mem, cpu
 
 def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels", order=(5, 1, 0)):
     results = {}
@@ -33,6 +35,8 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     df = df.sort_values(by=date_col)
     df = df.dropna(subset=[date_col])
     df = df.set_index(date_col).sort_index()
+    if df.index.inferred_type == "datetime64" and df.index.freq is None:
+        df.index = pd.DatetimeIndex(df.index)
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -70,18 +74,27 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
 
     if engine == "statsmodels":
-        model = ARIMA(endog=y_train, exog=X_train, order=order).fit()
-        if hasattr(model, 'mle_retvals') and not model.mle_retvals.get('converged', True):
-            print(f"MLE did not converge for {data.name}. Details:", model.mle_retvals)
-        y_pred = model.forecast(steps=len(y_test), exog=X_test)
+        if X_train.empty:
+            model = ARIMA(endog=y_train, order=order).fit()
+            y_pred = model.forecast(steps=len(y_test))
+        else:
+            model = ARIMA(endog=y_train, exog=X_train, order=order).fit()
+            y_pred = model.forecast(steps=len(y_test), exog=X_test)
     else:
-        model = auto_arima(y_train, exogenous=X_train, seasonal=False, stepwise=True, suppress_warnings=True)
-        y_pred = model.predict(n_periods=len(y_test), exogenous=X_test)
+        if X_train.empty:
+            model = auto_arima(y_train, seasonal=False, stepwise=True, suppress_warnings=True)
+            y_pred = model.predict(n_periods=len(y_test))
+        else:
+            model = auto_arima(y_train, exogenous=X_train, seasonal=False, stepwise=True, suppress_warnings=True)
+            y_pred = model.predict(n_periods=len(y_test), exogenous=X_test)
 
     total_time = time.time() - start_time
     mem_after = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
     mem_used = mem_after - mem_before
     log_system_usage("After Model Training")
+    
+    print(f"Total Training Time: {total_time:.2f} seconds")
+    print(f"Memory Used (MB): {mem_used:.2f}")    
 
     mse = mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(mse)

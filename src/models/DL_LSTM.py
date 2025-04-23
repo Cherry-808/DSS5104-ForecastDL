@@ -156,8 +156,8 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     # Print metrics
     # rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(y_test_inv, y_pred_inv, n_features=X_test.shape[2])  
     rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(
-        np.exp(y_test_inv) if data.name == 'Energy' else y_test_inv,
-        np.exp(y_pred_inv) if data.name == 'Energy' else y_pred_inv,
+        np.exp(np.exp(y_test_inv)) if data.name == 'Energy' else y_test_inv,
+        np.exp(np.exp(y_pred_inv)) if data.name == 'Energy' else y_pred_inv,
         n_features=X_test.shape[2]
     )
 
@@ -204,8 +204,8 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     plt.figure(figsize=(10, 5))
     # plt.plot(dates, y_test_inv, label='Actual')
     # plt.plot(dates, y_pred_inv, label='Predicted', linestyle='--')
-    plt.plot(dates, np.exp(y_test_inv) if data.name == 'Energy' else y_test_inv, label='Actual')
-    plt.plot(dates, np.exp(y_pred_inv) if data.name == 'Energy' else y_pred_inv, label='Predicted', linestyle='--')    
+    plt.plot(dates, np.exp(np.exp(y_test_inv)) if data.name == 'Energy' else y_test_inv, label='Actual')
+    plt.plot(dates, np.exp(np.exp(y_pred_inv)) if data.name == 'Energy' else y_pred_inv, label='Predicted', linestyle='--')    
     plt.title(f"{data.name} LSTM Forecast")
     plt.xlabel("Date")
     plt.ylabel("Target")

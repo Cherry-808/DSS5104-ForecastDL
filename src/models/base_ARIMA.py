@@ -96,14 +96,31 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     print(f"Total Training Time: {total_time:.2f} seconds")
     print(f"Memory Used (MB): {mem_used:.2f}")    
 
-    mse = mean_squared_error(y_test, y_pred)
+    # mse = mean_squared_error(y_test, y_pred)
+    mse = mean_squared_error(
+    np.exp(y_test.values) if data.name == 'Energy' else y_test.values,
+    np.exp(y_pred) if data.name == 'Energy' else y_pred
+    )
     rmse = np.sqrt(mse)
-    mae = mean_absolute_error(y_test, y_pred)
+    # mae = mean_absolute_error(y_test, y_pred)
+    mae = mean_absolute_error(
+    np.exp(y_test.values) if data.name == 'Energy' else y_test.values,
+    np.exp(y_pred) if data.name == 'Energy' else y_pred
+    )
     try:
-        mape = np.mean(np.abs((y_test - y_pred) / (y_test + 1e-10))) * 100
+        # mape = np.mean(np.abs((y_test - y_pred) / (y_test + 1e-10))) * 100
+        if data.name == 'Energy':
+            mape = np.mean(np.abs((np.exp(y_test.values) - np.exp(y_pred)) / (np.exp(y_test.values) + 1e-10))) * 100
+        else:
+            mape = np.mean(np.abs((y_test.values - y_pred) / (y_test.values + 1e-10))) * 100
+        
     except Exception:
         mape = np.nan
-    r2 = r2_score(y_test, y_pred)
+    # r2 = r2_score(y_test, y_pred)
+    r2 = r2_score(
+        np.exp(y_test.values) if data.name == 'Energy' else y_test.values,
+        np.exp(y_pred) if data.name == 'Energy' else y_pred
+    )    
     n = len(y_test)
     p = X.shape[1]
     adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
@@ -127,8 +144,10 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     os.makedirs(plot_dir, exist_ok=True)
 
     plt.figure(figsize=(10, 5))
-    plt.plot(date_index, y_test.values, label='Actual')
-    plt.plot(date_index, y_pred, label='Predicted', linestyle='--')
+    # plt.plot(date_index, y_test.values, label='Actual')
+    # plt.plot(date_index, y_pred, label='Predicted', linestyle='--')
+    plt.plot(date_index, np.exp(y_test.values) if data.name == 'Energy' else y_test.values, label='Actual')
+    plt.plot(date_index, np.exp(y_pred) if data.name == 'Energy' else y_pred, label='Predicted', linestyle='--')    
     plt.title(f"{data.name} {model_label} Forecast")
     plt.xlabel("Date")
     plt.ylabel("Target")

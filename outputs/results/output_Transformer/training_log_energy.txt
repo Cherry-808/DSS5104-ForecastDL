@@ -2,10 +2,10 @@
 =================================================
 Transformer Model Training Log (Google Colab)
 =================================================
-Date and Time: 2025-04-22 11:58:15 (UTC)
+Date and Time: 2025-04-23 11:18:27 (UTC)
 
 --- Data Configuration ---
-Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
+Google Drive Base Path: /content/drive/MyDrive/
 Data File: df_with_lag_indicators.csv.gz
 Date/Index Column: timestamp
 Target Column: Energy_Price
@@ -23,27 +23,27 @@ Dropout: 0.1
 MLP Dropout: 0.1
 
 --- Training Details ---
-Epochs Run: 50 (Max Epochs Configured: 50)
+Epochs Run: 12 (Max Epochs Configured: 50)
 Batch Size: 64
 Learning Rate: 0.0001
-Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_energy.keras
-Training Time: 3782.18 seconds
+Best Model Saved To: /content/drive/MyDrive/best_transformer_model_energy.keras
+Training Time: 906.77 seconds
 
 --- Resource Usage ---
-Memory Usage Before Training: 6105.69 MB
-Memory Usage After Training: 6969.96 MB
-Approx. Memory Increase During Training: 864.27 MB
+Memory Usage Before Training: 6107.71 MB
+Memory Usage After Training: 6935.61 MB
+Approx. Memory Increase During Training: 827.91 MB
 
 --- Evaluation Metrics (Test Set) ---
-RMSE: 0.442886
-MSE: 0.196148
-MAE: 0.214052
-MAPE (%): 28.75
-R2 Score: 0.722834
-Adjusted R2 Score: 0.722749
+RMSE: 45.205549
+MSE: 2043.541660
+MAE: 24.481972
+MAPE (%): 47.23
+R2 Score: 0.727135
+Adjusted R2 Score: 0.727053
 
 --- Output Files ---
-Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_energy.png
-Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_energy.png
-Log File: /content/drive/MyDrive/Transformer_Project/training_log_energy.txt
+Loss Curve Plot: /content/drive/MyDrive/loss_curve_energy.png
+Prediction Plot: /content/drive/MyDrive/prediction_vs_actual_energy.png
+Log File: /content/drive/MyDrive/training_log_energy.txt
 =================================================

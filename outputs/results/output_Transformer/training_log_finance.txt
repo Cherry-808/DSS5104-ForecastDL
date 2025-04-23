@@ -2,7 +2,7 @@
 =================================================
 Transformer Model Training Log (Google Colab)
 =================================================
-Date and Time: 2025-04-22 03:38:52 (UTC)
+Date and Time: 2025-04-23 15:38:09 (UTC)
 
 --- Data Configuration ---
 Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
@@ -10,7 +10,7 @@ Data File: processed_finance_data.csv
 Date/Index Column: Date
 Target Column: Close_TSLA
 Feature Columns Used: ['Close_TSLA', 'Volume_TSLA', 'TSLA_Returns', 'TSLA_day', 'TSLA_month', 'TSLA_weekday', 'day_sin', 'day_cos', 'month_sin', 'month_cos', 'weekday_sin', 'weekday_cos', 'Close_TSLA_Lag_1', 'Close_TSLA_Lag_2', 'Close_TSLA_Lag_3', 'Close_TSLA_Lag_4', 'Close_TSLA_Lag_5', 'Close_TSLA_Lag_10', 'Close_TSLA_Lag_20', 'Close_TSLA_Lag_30', 'Close_TSLA_Lag_60', 'Close_TSLA_Lag_90', 'Close_TSLA_Lag_120', 'TSLA_Daily_Return', 'TSLA_Total_Return_5d', 'TSLA_Total_Return_10d', 'TSLA_Total_Return_20d', 'TSLA_Total_Return_60d', 'TSLA_Total_Return_90d', 'TSLA_Total_Return_120d', 'TSLA_Total_Return_252d', 'TSLA_RSI', 'TSLA_EMA_20', 'TSLA_EMA_40', 'TSLA_MACD', 'TSLA_MACD_Signal', 'TSLA_SMA_50', 'TSLA_SMA_100', 'TSLA_SMA_150', 'TSLA_SMA_200', 'TSLA_BB_Mid', 'TSLA_BB_High', 'TSLA_BB_Low', 'TSLA_Ichimoku_Conversion_Line', 'TSLA_Ichimoku_Base_Line', 'TSLA_Ichimoku_Lagging_Span', 'TSLA_Ichimoku_Leading_Span_A', 'TSLA_Ichimoku_Leading_Span_B', 'TSLA_Gap_Up', 'TSLA_Gap_Down', 'TSLA_Gap_Size', 'TSLA_Open_Return', 'TSLA_Open_SMA_10', 'TSLA_Open_EMA_10', 'TSLA_VWAP_Open', 'Close_BTC-USD', 'Volume_BTC-USD', 'BTC-USD_Returns', 'Close_BZ=F', 'Volume_BZ=F', 'BZ=F_Returns', 'Close_DX-Y.NYB', 'Volume_DX-Y.NYB', 'DX-Y.NYB_Returns', 'Close_%5EVIX', 'Volume_%5EVIX', '%5EVIX_Returns', 'Close_%5EGSPC', 'Volume_%5EGSPC', '%5EGSPC_Returns', 'Close_LIT', 'Volume_LIT', 'LIT_Returns', 'Close_SOXX', 'Volume_SOXX', 'SOXX_Returns', 'PCE_Price_Index', 'Core_PCE_Price_Index', '10-Year_Treasury_Yield', 'Federal_Funds_Rate', 'University_of_Michigan-Consumer_Sentiment', 'Consumer_Price_Index-All_Items-Total_for_United_States', 'Total_Vehicle_Sales']
-Sequence Length: 60
+Sequence Length: 15
 Test Set Size: 0.2
 
 --- Model Hyperparameters ---
@@ -23,27 +23,27 @@ Dropout: 0.1
 MLP Dropout: 0.1
 
 --- Training Details ---
-Epochs Run: 24 (Max Epochs Configured: 50)
+Epochs Run: 14 (Max Epochs Configured: 50)
 Batch Size: 64
 Learning Rate: 0.0001
-Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model.keras
-Training Time: 72.87 seconds
+Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_finance.keras
+Training Time: 159.80 seconds
 
 --- Resource Usage ---
-Memory Usage Before Training: 1253.50 MB
-Memory Usage After Training: 2085.84 MB
-Approx. Memory Increase During Training: 832.33 MB
+Memory Usage Before Training: 817.07 MB
+Memory Usage After Training: 1155.68 MB
+Approx. Memory Increase During Training: 338.61 MB
 
 --- Evaluation Metrics (Test Set) ---
-RMSE: 48.121367
-MSE: 2315.665948
-MAE: 40.154968
-MAPE (%): 18.32
-R2 Score: -0.171216
-Adjusted R2 Score: -0.427034
+RMSE: 44.439106
+MSE: 1974.834146
+MAE: 35.263922
+MAPE (%): 17.29
+R2 Score: 0.082569
+Adjusted R2 Score: -0.113181
 
 --- Output Files ---
-Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve.png
-Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual.png
-Log File: /content/drive/MyDrive/Transformer_Project/training_log.txt
+Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_finance.png
+Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_finance.png
+Log File: /content/drive/MyDrive/Transformer_Project/training_log_finance.txt
 =================================================

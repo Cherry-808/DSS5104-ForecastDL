@@ -1,0 +1,51 @@
+
+=================================================
+Transformer Model Training Log (Google Colab) - v2 (MAE Loss, Fourier Features)
+=================================================
+Date and Time: 2025-04-23 11:23:42 (UTC)
+
+--- Data Configuration ---
+Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
+Data File: data_with_lags_s1_i1.parquet
+Date/Index Column: date
+Target Column: sales
+Fourier Features Added (if time index available): ['sin_week', 'cos_week', 'sin_year', 'cos_year']
+Feature Columns Used: ['sales', 'year', 'month', 'day', 'dayofweek', 'dayofyear', 'weekofyear', 'quarter', 'is_month_start', 'is_month_end', 'sales_lag_1', 'sales_lag_7', 'sales_lag_14', 'sales_lag_21', 'sales_lag_28', 'sales_lag_30', 'sales_lag_60', 'sales_lag_90', 'sales_lag_180', 'sales_lag_364', 'sales_lag_365', 'sales_roll_mean_7d', 'sales_roll_std_7d', 'sales_roll_median_7d', 'sales_roll_min_7d', 'sales_roll_max_7d', 'sales_roll_mean_14d', 'sales_roll_std_14d', 'sales_roll_median_14d', 'sales_roll_min_14d', 'sales_roll_max_14d', 'sales_roll_mean_28d', 'sales_roll_std_28d', 'sales_roll_median_28d', 'sales_roll_min_28d', 'sales_roll_max_28d', 'sales_roll_mean_60d', 'sales_roll_std_60d', 'sales_roll_median_60d', 'sales_roll_min_60d', 'sales_roll_max_60d', 'sales_roll_mean_90d', 'sales_roll_std_90d', 'sales_roll_median_90d', 'sales_roll_min_90d', 'sales_roll_max_90d', 'sin_week', 'cos_week', 'sin_year', 'cos_year']
+Sequence Length: 15
+Test Set Size: 0.2
+
+--- Model Hyperparameters ---
+Head Size: 128
+Number of Heads: 4
+Feed-Forward Dim: 128
+Transformer Blocks: 4
+MLP Units: [64]
+Dropout: 0.1
+MLP Dropout: 0.1
+
+--- Training Details ---
+Loss Function: Mean Absolute Error (MAE)
+Epochs Run: 36 (Max Epochs Configured: 50)
+Batch Size: 64
+Learning Rate: 0.0001
+Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_v2_mae_fourier_retail.keras
+Training Time: 177.01 seconds
+
+--- Resource Usage ---
+Memory Usage Before Training: 1147.96 MB
+Memory Usage After Training: 1306.41 MB
+Approx. Memory Increase During Training: 158.45 MB
+
+--- Evaluation Metrics (Test Set) ---
+RMSE: 5.732000
+MSE: 32.855822
+MAE: 4.569647 (Training Loss Metric)
+MAPE (%): 22.69
+R2 Score: 0.269849
+Adjusted R2 Score: 0.117098
+
+--- Output Files ---
+Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_v2_mae_fourier_retail.png
+Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_v2_mae_fourier_retail.png
+Log File: /content/drive/MyDrive/Transformer_Project/training_log_v2_mae_fourier_retail.txt
+=================================================

@@ -2,7 +2,7 @@
 =================================================
 Transformer Model Training Log (Google Colab)
 =================================================
-Date and Time: 2025-04-22 03:45:42 (UTC)
+Date and Time: 2025-04-23 15:36:11 (UTC)
 
 --- Data Configuration ---
 Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
@@ -10,7 +10,7 @@ Data File: Temperature Data with Lag Features of California.csv
 Date/Index Column: TIME
 Target Column: Mean_Temperature
 Feature Columns Used: ['Mean_Temperature', 'lag_1', 'lag_12']
-Sequence Length: 60
+Sequence Length: 15
 Test Set Size: 0.2
 
 --- Model Hyperparameters ---
@@ -23,27 +23,27 @@ Dropout: 0.1
 MLP Dropout: 0.1
 
 --- Training Details ---
-Epochs Run: 30 (Max Epochs Configured: 50)
+Epochs Run: 50 (Max Epochs Configured: 50)
 Batch Size: 64
 Learning Rate: 0.0001
-Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model.keras
-Training Time: 69.47 seconds
+Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_climate.keras
+Training Time: 78.83 seconds
 
 --- Resource Usage ---
-Memory Usage Before Training: 1072.80 MB
-Memory Usage After Training: 1816.77 MB
-Approx. Memory Increase During Training: 743.96 MB
+Memory Usage Before Training: 762.69 MB
+Memory Usage After Training: 1050.46 MB
+Approx. Memory Increase During Training: 287.77 MB
 
 --- Evaluation Metrics (Test Set) ---
-RMSE: 8.500583
-MSE: 72.259907
-MAE: 7.577222
-MAPE (%): 562.28
-R2 Score: 0.010652
-Adjusted R2 Score: -0.022697
+RMSE: 7.655275
+MSE: 58.603229
+MAE: 6.754987
+MAPE (%): 608.89
+R2 Score: 0.187960
+Adjusted R2 Score: 0.163102
 
 --- Output Files ---
-Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve.png
-Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual.png
-Log File: /content/drive/MyDrive/Transformer_Project/training_log.txt
+Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_climate.png
+Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_climate.png
+Log File: /content/drive/MyDrive/Transformer_Project/training_log_climate.txt
 =================================================

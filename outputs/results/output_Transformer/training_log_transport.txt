@@ -2,7 +2,7 @@
 =================================================
 Transformer Model Training Log (Google Colab)
 =================================================
-Date and Time: 2025-04-22 03:23:57 (UTC)
+Date and Time: 2025-04-23 15:33:52 (UTC)
 
 --- Data Configuration ---
 Google Drive Base Path: /content/drive/MyDrive/Transformer_Project/
@@ -10,7 +10,7 @@ Data File: Baltimore_Lagged_Dataset.csv
 Date/Index Column: Month
 Target Column: Total TEUs
 Feature Columns Used: ['Total TEUs', 'Lag_1', 'Lag_2', 'Lag_3', 'Lag_6', 'Lag_12']
-Sequence Length: 60
+Sequence Length: 15
 Test Set Size: 0.2
 
 --- Model Hyperparameters ---
@@ -23,27 +23,27 @@ Dropout: 0.1
 MLP Dropout: 0.1
 
 --- Training Details ---
-Epochs Run: 49 (Max Epochs Configured: 50)
+Epochs Run: 27 (Max Epochs Configured: 50)
 Batch Size: 64
 Learning Rate: 0.0001
-Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model.keras
-Training Time: 150.89 seconds
+Best Model Saved To: /content/drive/MyDrive/Transformer_Project/best_transformer_model_transport.keras
+Training Time: 54.97 seconds
 
 --- Resource Usage ---
-Memory Usage Before Training: 768.14 MB
-Memory Usage After Training: 1255.46 MB
-Approx. Memory Increase During Training: 487.33 MB
+Memory Usage Before Training: 1377.90 MB
+Memory Usage After Training: 1499.03 MB
+Approx. Memory Increase During Training: 121.13 MB
 
 --- Evaluation Metrics (Test Set) ---
-RMSE: 29831.385677
-MSE: 889911571.406075
-MAE: 28038.974149
-MAPE (%): 98.65
-R2 Score: -1.037774
-Adjusted R2 Score: -1.315652
+RMSE: 32682.662323
+MSE: 1068156416.515881
+MAE: 31289.450918
+MAPE (%): 88.85
+R2 Score: -1.796374
+Adjusted R2 Score: -2.112945
 
 --- Output Files ---
-Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve.png
-Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual.png
-Log File: /content/drive/MyDrive/Transformer_Project/training_log.txt
+Loss Curve Plot: /content/drive/MyDrive/Transformer_Project/loss_curve_transport.png
+Prediction Plot: /content/drive/MyDrive/Transformer_Project/prediction_vs_actual_transport.png
+Log File: /content/drive/MyDrive/Transformer_Project/training_log_transport.txt
 =================================================

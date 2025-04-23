@@ -6,58 +6,73 @@ import pandas as pd
 import numpy as np
 import os, time, psutil, tensorflow as tf
 from datetime import datetime
+import gc
+import random
+np.random.seed(42)
+tf.random.set_seed(42)
+random.seed(42)
 
-def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels", order=(5,1,0)):
+# Function to log system usage
+def log_system_usage(tag=""):
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss / (1024 ** 2)
+    cpu = process.cpu_percent(interval=1)
+    print(f"[{tag}] Memory Usage: {mem:.2f} MB | CPU Usage: {cpu:.2f}%")
+    return mem, cpu
+
+def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels", order=(5, 1, 0)):
     results = {}
     df = data.dropna().copy()
+
+    # Attempt fast datetime parsing, fallback to individual parsing
+    try:
+        df[date_col] = pd.to_datetime(df[date_col], format="%Y-%m-%d")
+    except Exception:
+        df[date_col] = pd.to_datetime(df[date_col], errors='coerce')
+
     df = df.sort_values(by=date_col)
+    df = df.dropna(subset=[date_col])
+    df = df.set_index(date_col).sort_index()
+
+    if not df.index.is_monotonic_increasing:
+        df = df.sort_index()
+
+    inferred_freq = pd.infer_freq(df.index)
+    if inferred_freq:
+        try:
+            df.index.freq = inferred_freq
+        except ValueError:
+            df.index.freq = None
 
     split_idx = int(len(df) * (1 - test_ratio))
+    date_index = df.index[split_idx:].to_series().reset_index(drop=True)
 
-    # Preserve aligned date index (post-split) using cleaned df
-    date_index = df[date_col].iloc[split_idx:].reset_index(drop=True)
-
-    # Drop date column for modeling
-    df = df.drop(columns=[date_col])
-    
     y = df[target]
     X = df.drop(columns=[target]) if df.shape[1] > 1 else pd.DataFrame(index=df.index)
 
-    # Split
     y_train, y_test = y[:split_idx], y[split_idx:]
     X_train, X_test = X[:split_idx], X[split_idx:]
 
-    # Convert to numeric
-    X_train = X_train.apply(pd.to_numeric, errors='coerce')
-    X_test = X_test.apply(pd.to_numeric, errors='coerce')
-    y_train = pd.to_numeric(y_train, errors='coerce')
-    y_test = pd.to_numeric(y_test, errors='coerce')
+    X_train = X_train.apply(pd.to_numeric, errors='coerce').fillna(0)
+    X_test = X_test.apply(pd.to_numeric, errors='coerce').fillna(0)
+    y_train = pd.to_numeric(y_train, errors='coerce').ffill()
+    y_test = pd.to_numeric(y_test, errors='coerce').ffill()
+    date_index = date_index.ffill()
 
-    # Clean training
-    valid_train_idx = (~X_train.isnull().any(axis=1)) & (~y_train.isnull())
-    X_train = X_train[valid_train_idx]
-    y_train = y_train[valid_train_idx]
-
-    # Reset index for alignment
-    X_test = X_test.reset_index(drop=True)
-    y_test = y_test.reset_index(drop=True)
-    date_index = date_index.reset_index(drop=True)
-
-    # Now apply mask safely
-    valid_test_idx = (~X_test.isnull().any(axis=1)) & (~y_test.isnull())
-    X_test = X_test[valid_test_idx]
-    y_test = y_test[valid_test_idx]
-    date_index = date_index[valid_test_idx].reset_index(drop=True)
+    X_train.index = y_train.index
+    X_test.index = pd.RangeIndex(start=0, stop=len(X_test), step=1)
 
     if X_train.empty or X_test.empty or y_train.empty or y_test.empty:
         raise ValueError("Training or testing data is empty after cleaning. Check for NaNs or formatting issues.")
 
-    # Log system usage
+    log_system_usage("Before Model Training")
     start_time = time.time()
     mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
 
     if engine == "statsmodels":
         model = ARIMA(endog=y_train, exog=X_train, order=order).fit()
+        if hasattr(model, 'mle_retvals') and not model.mle_retvals.get('converged', True):
+            print(f"MLE did not converge for {data.name}. Details:", model.mle_retvals)
         y_pred = model.forecast(steps=len(y_test), exog=X_test)
     else:
         model = auto_arima(y_train, exogenous=X_train, seasonal=False, stepwise=True, suppress_warnings=True)
@@ -66,12 +81,15 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     total_time = time.time() - start_time
     mem_after = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
     mem_used = mem_after - mem_before
+    log_system_usage("After Model Training")
 
-    # Evaluation
     mse = mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
-    mape = np.mean(np.abs((y_test - y_pred) / (y_test + 1e-10))) * 100
+    try:
+        mape = np.mean(np.abs((y_test - y_pred) / (y_test + 1e-10))) * 100
+    except Exception:
+        mape = np.nan
     r2 = r2_score(y_test, y_pred)
     n = len(y_test)
     p = X.shape[1]
@@ -80,7 +98,6 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     device = tf.config.list_physical_devices('GPU')[0].name if tf.config.list_physical_devices('GPU') else 'CPU'
     model_label = "Statsmodels ARIMA" if engine == "statsmodels" else "PMDARIMA"
 
-    # Print summary
     print(f"\n[ARIMA - {data.name}] Evaluation Summary ({model_label})")
     print("-" * 75)
     print(f"{'RMSE':<20}: {rmse:.3f}")
@@ -93,11 +110,9 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     print(f"{'Device Used':<20}: {device}")
     print("-" * 75)
 
-    # Output path
     plot_dir = os.path.join("outputs/results/output_ARIMA", data.name)
     os.makedirs(plot_dir, exist_ok=True)
 
-    # Save plot
     plt.figure(figsize=(10, 5))
     plt.plot(date_index, y_test.values, label='Actual')
     plt.plot(date_index, y_pred, label='Predicted', linestyle='--')
@@ -111,7 +126,6 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
     plt.savefig(os.path.join(plot_dir, f"{data.name}_prediction_plot.png"))
     plt.show()
 
-    # Save metrics log
     log_path = os.path.join(plot_dir, f"{data.name}_metrics_log.txt")
     with open(log_path, "w", encoding="utf-8") as f:
         f.write(f"Dataset: {data.name}\n")
@@ -130,7 +144,6 @@ def run_arima_on_dataset(data, target, date_col, test_ratio, engine="statsmodels
         f.write(f" - R²: {r2:.3f}\n")
         f.write(f" - Adjusted R²: {adj_r2:.3f}\n")
 
-    # Save to CSV
     csv_metrics_path = os.path.join("outputs/results/output_ARIMA", "all_model_metrics.csv")
     metrics_entry = pd.DataFrame([{
         "Dataset": data.name,

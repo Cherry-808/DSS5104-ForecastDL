@@ -33,8 +33,8 @@ def create_sequences(data, target_col, feature_cols, seq_length):
         y.append(seq_y)
     return np.array(X), np.array(y)
 
-# Scale and split data (without scaling)
-def prepare_lstm_data(df, target_col, seq_length, test_ratio, date_col=None):
+# Scale and split data (scaling before log if needed)
+def prepare_lstm_data(df, target_col, seq_length, test_ratio, date_col=None, log_transform=False):
     df = df.dropna()
 
     # Extract and store date index if specified
@@ -52,6 +52,8 @@ def prepare_lstm_data(df, target_col, seq_length, test_ratio, date_col=None):
     # Apply MinMax scaling
     scaler = MinMaxScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df_numeric), columns=df_numeric.columns, index=df_numeric.index)
+    
+    gc.collect()       
 
     # Create sequences
     X, y = create_sequences(df_scaled, target_col, feature_cols, seq_length)
@@ -74,19 +76,18 @@ def plot_predictions(dates, actual, predicted, title, target, date_col):
     plt.tight_layout()
     plt.grid(True)
     plt.show()
+    plt.close()
 
 # Evaluate model performance
 def evaluate_predictions(y_true, y_pred, n_features=1):
     mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_true, y_pred)
-    # mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-10))) * 100
     r2 = r2_score(y_true, y_pred)
     n = len(y_true)
     p = n_features
     adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
-
     return rmse, mse, mae, mape, r2, adj_r2
 
 # Function to log system usage
@@ -99,65 +100,86 @@ def log_system_usage(tag=""):
     return mem, peak_memory_mb, cpu
 
 # Main function to run the LSTM model
-def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, batch_size):
+def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, batch_size, apply_log_transform=False):
     results = {}
 
     # Prepare your dataset
-    X_train, X_test, y_train, y_test, scaler, dates = prepare_lstm_data(data, target, seq_length, test_ratio, date_col)
+    X_train, X_test, y_train, y_test, scaler, dates = prepare_lstm_data(data, target, seq_length, test_ratio, date_col, log_transform=False) # Log handled after inverse
 
     # Build model
     n_features = X_train.shape[2]
     model = build_lstm_model(seq_length, n_features=n_features)
-    
+
     # Log performance before training
     start_time = time.time()
     mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
     log_system_usage("Before Training")
 
     # Callbacks
-    early_stop = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)    
-    
+    early_stop = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
+
     # Train model
-    model.fit(X_train, y_train, 
-              epochs=epochs, 
-              batch_size=batch_size, 
+    model.fit(X_train, y_train,
+              epochs=epochs,
+              batch_size=batch_size,
               validation_data=(X_test, y_test),
               callbacks=[early_stop],
               verbose=1)
+
+    # # Convert training and validation sets to tf.data.Dataset
+    # train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)) \
+    #     .batch(batch_size) \
+    #     .prefetch(tf.data.AUTOTUNE)
+
+    # val_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)) \
+    #     .batch(batch_size) \
+    #     .prefetch(tf.data.AUTOTUNE)
+
+    # # Train using Dataset pipeline
+    # model.fit(train_dataset,
+    #         validation_data=val_dataset,
+    #         epochs=epochs,
+    #         callbacks=[early_stop],
+    #         verbose=1)
+
+    gc.collect()
 
     log_system_usage("After Training")
     total_time = time.time() - start_time
     mem_after = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
     mem_used = mem_after - mem_before
-    
+
     print(f"Total Training Time: {total_time:.2f} seconds")
     print(f"Memory Used (MB): {mem_used:.2f}")
-    
+
     # Predict
-    y_pred = model.predict(X_test)
+    y_pred_scaled = model.predict(X_test)
 
     # Determine the correct number of columns from the scaler
     n_total_features = scaler.n_features_in_
 
     # Pad predictions with zeros for inverse transform
-    y_pred_full = np.zeros((len(y_pred), n_total_features))
-    y_pred_full[:, -1] = y_pred.flatten()
+    y_pred_full = np.zeros((len(y_pred_scaled), n_total_features))
+    y_pred_full[:, -1] = y_pred_scaled.flatten()
 
     y_test_full = np.zeros((len(y_test), n_total_features))
     y_test_full[:, -1] = y_test.flatten()
 
-    # Inverse transform and extract only the target column
-    y_pred_inv = scaler.inverse_transform(y_pred_full)[:, -1]
-    y_test_inv = scaler.inverse_transform(y_test_full)[:, -1]
+    # Inverse transform to the original scale
+    y_pred_inv_scaled = scaler.inverse_transform(y_pred_full)[:, -1]
+    y_test_inv_scaled = scaler.inverse_transform(y_test_full)[:, -1]
+
+    # Apply exponential to reverse log if original data was logged
+    y_pred_final = y_pred_inv_scaled
+    y_test_final = y_test_inv_scaled
 
     # Plot results
-    plot_predictions(dates, y_test_inv, y_pred_inv, "Model Predictions vs Actual", target, date_col)
+    plot_predictions(dates, y_test_final, y_pred_final, "Model Predictions vs Actual", target, date_col)
 
-    # Print metrics
-    # rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(y_test_inv, y_pred_inv, n_features=X_test.shape[2])  
+    # Evaluate metrics
     rmse, mse, mae, mape, r2, adj_r2 = evaluate_predictions(
-        np.exp(np.exp(y_test_inv)) if data.name == 'Energy' else y_test_inv,
-        np.exp(np.exp(y_pred_inv)) if data.name == 'Energy' else y_pred_inv,
+        y_test_final,
+        y_pred_final,
         n_features=X_test.shape[2]
     )
 
@@ -171,7 +193,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         'PeakMemoryMB': psutil.Process(os.getpid()).memory_info().peak_wset / (1024 ** 2),
         'CPUUsage': psutil.cpu_percent(interval=1),
         'TrainingLoss': model.history.history['loss'][-1] if hasattr(model, 'history') else None,
-        'Model': 'LSTM'       
+        'Model': 'LSTM'
     })
 
     # After model training
@@ -202,10 +224,8 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
 
     plot_path = os.path.join(plot_dir, f"{data.name}_prediction_plot.png")
     plt.figure(figsize=(10, 5))
-    # plt.plot(dates, y_test_inv, label='Actual')
-    # plt.plot(dates, y_pred_inv, label='Predicted', linestyle='--')
-    plt.plot(dates, np.exp(np.exp(y_test_inv)) if data.name == 'Energy' else y_test_inv, label='Actual')
-    plt.plot(dates, np.exp(np.exp(y_pred_inv)) if data.name == 'Energy' else y_pred_inv, label='Predicted', linestyle='--')    
+    plt.plot(dates, y_test_final, label='Actual')
+    plt.plot(dates, y_pred_final, label='Predicted', linestyle='--')
     plt.title(f"{data.name} LSTM Forecast")
     plt.xlabel("Date")
     plt.ylabel("Target")
@@ -214,6 +234,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(plot_path)
+    # plt.show()
     plt.close()
 
     # --- Save Evaluation Metrics Log ---
@@ -244,7 +265,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         f.write(f" - MAPE: {mape:.3f}\n")
         f.write(f" - R²: {r2:.3f}\n")
         f.write(f" - Adjusted R²: {adj_r2:.3f}\n")
-        
+
     # --- Save model weights ---
     model_path = os.path.join(plot_dir, f"{data.name}_model.h5")
     model.save(model_path)
@@ -262,6 +283,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
     plt.tight_layout()
     plt.savefig(history_path)
     plt.show()
+    plt.close()
 
     # --- CSV Log (append to master metrics CSV) ---
     csv_metrics_path = os.path.join("outputs/results/output_LSTM", "all_model_metrics.csv")
@@ -281,7 +303,7 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         "TestRatio": test_ratio,
         "Device": device,
         "FinalMemoryMB": mem,
-        "PeakMemoryMB": mem,
+        "PeakMemoryMB": peak_memory_mb,
         "CPUUsage": psutil.cpu_percent(interval=1),
         "Model": "LSTM",
         "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -293,7 +315,9 @@ def run_lstm_on_dataset(data, target, date_col, seq_length, test_ratio, epochs, 
         metrics_entry.to_csv(csv_metrics_path, mode='a', index=False, header=False)
     else:
         metrics_entry.to_csv(csv_metrics_path, index=False)
-
+        
+    gc.collect()
+    tf.keras.backend.clear_session()
 
     return results
 

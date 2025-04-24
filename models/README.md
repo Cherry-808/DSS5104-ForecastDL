@@ -93,4 +93,3 @@ This document lists the full set of hyperparameters used for all forecasting mod
 ## 📎 Reference
 For implementation details and reproducibility, see the corresponding scripts in:
 - `src/models/`
-- `notebooks/Hyperparameter_Documentation.ipynb` (if available)

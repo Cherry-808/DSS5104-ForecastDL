@@ -19,6 +19,14 @@ The time index for each observation, provided in `YYYY-MM` format. This defines 
 ### `Mean_Temperature` (float64)
 This is the **target variable** for forecasting. It represents the monthly mean surface air temperature, derived from PRISM’s high-resolution gridded climate model. Values reflect climatological conditions over time, with both seasonal patterns and long-term trends.
 
+--
+
+## Time Features (Engineered from `Timestamp`)
+In addition to the original predictors, additional time features were added, since some models require lag indicators for time-series forecasting.
+
+- `lag_1': Lagged energy price by 5-min
+- `lag_12': Lagged energy price by 1-hour
+
 ---
 
 ## Additional Info

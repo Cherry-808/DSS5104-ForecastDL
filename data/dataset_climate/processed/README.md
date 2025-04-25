@@ -1,6 +1,6 @@
 # Column Definitions - Temperature Data of California Dataset
 
-This file contains monthly mean temperature data of California derived from the PRISM Climate Group.
+This file contains monthly mean temperature data of California derived from the PRISM Climate Group. It is used for time-series modeling and climate trend analysis as part of the **DSS5104-ForecastDL project**.
 
 ---
 
